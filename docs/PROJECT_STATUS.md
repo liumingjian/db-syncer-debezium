@@ -40,13 +40,13 @@
 |------|------|------------|------|
 | Phase 1 | 项目基础设施 | 6 | ✅ 全部完成 |
 | Phase 2 | 元数据管理系统 | 8 | ✅ 全部完成 |
-| Phase 3 | CLI 命令行工具 | 7 | 全部待办 |
-| Phase 4 | Debezium Connector 集成 | 2 | 全部待办 |
-| Phase 5 | 数据转换层 | 3 | 全部待办 |
-| Phase 6 | 任务执行引擎 | 8 | 全部待办 |
-| Phase 7 | 监控与可观测性 | 5 | 全部待办 |
-| Phase 8 | 测试与文档 | 4 | 全部待办 |
-| **总计** | | **43** | **14 完成, 29 待办** |
+| Phase 3 | CLI 命令行工具 | 7 | ✅ 全部完成 |
+| Phase 4 | Debezium Connector 集成 | 8 | ✅ 全部完成 |
+| Phase 5 | 数据转换层 | 6 | 全部待办 |
+| Phase 6 | 任务执行引擎 | 9 | 全部待办 |
+| Phase 7 | 监控与可观测性 | 6 | 全部待办 |
+| Phase 8 | 测试与文档 | 8 | 全部待办 |
+| **总计** | | **58** | **29 完成, 29 待办** |
 
 ## 技术栈
 
@@ -123,27 +123,32 @@ db-syncer-debezium/
 
 **完成时间**: 2025-11-17
 
-### Phase 3: CLI 命令行工具 (2周) - 🚧 进行中
+### Phase 3: CLI 命令行工具 (2周) - ✅ 已完成
 
-**关键任务**:
-- ⏳ Issue #15: Picocli 框架集成和主入口
-- ⏳ Issue #16: task 命令组 (create, list, show, delete)
-- ⏳ Issue #17: start/stop/pause/resume 命令
-- ⏳ Issue #18: config 命令组 (connector 配置管理)
-- ⏳ Issue #19: status 命令 (任务状态和进度查询)
-- ⏳ Issue #20: 输出格式化 (Table, JSON, YAML)
-- ⏳ Issue #21: 配置文件支持 (.dbsyncer.yml)
+**已完成**:
+- ✅ Issue #15: Picocli 框架集成和主入口
+- ✅ Issue #16: task 命令组 (create, list, show, delete)
+- ✅ Issue #17: start/stop/pause/resume 命令
+- ✅ Issue #18: config 命令组 (connector 配置管理)
+- ✅ Issue #19: status 命令 (任务状态和进度查询)
+- ✅ Issue #20: 输出格式化 (Table, JSON, YAML)
+- ✅ Issue #21: 配置文件支持 (.dbsyncer.yml)
 
-**预计开始时间**: 2025-11-17 (当前)
-**预计完成时间**: 2025-11-24
+**完成时间**: 2025-11-17
 
-### Phase 4: Debezium Connector 集成 (2周) - 未开始
+### Phase 4: Debezium Connector 集成 (2周) - ✅ 已完成
 
-**关键任务**:
-- Issue #16-17: Kafka Connect API、Connector 配置生成
+**已完成**:
+- ✅ Issue #22: Kafka Connect REST API 客户端
+- ✅ Issue #23: MySQL Source Connector 配置生成器
+- ✅ Issue #24: Oracle Source Connector 配置生成器
+- ✅ Issue #25: PostgreSQL Source Connector 配置生成器
+- ✅ Issue #26: Connector 生命周期管理
+- ✅ Issue #27: PostgreSQL-based Offset 存储
+- ✅ Issue #28: PostgreSQL-based Schema History 存储
+- ✅ Issue #29: Connector 集成测试 (38个测试通过)
 
-**预计开始时间**: 2025-12-23
-**预计完成时间**: 2026-01-05
+**完成时间**: 2025-11-17
 
 ### Phase 5: 数据转换层 (2周) - 未开始
 
@@ -181,48 +186,53 @@ db-syncer-debezium/
 
 ### 立即可做 (本周)
 
-1. **完成 Phase 3: CLI 命令行工具**
-   - [ ] 集成 Picocli 框架到 cli 模块
-   - [ ] 实现 task 命令组 (CRUD 操作)
-   - [ ] 实现任务控制命令 (start/stop/pause/resume)
-   - [ ] 实现 config 命令组
-   - [ ] 实现 status 查询命令
-   - [ ] 添加输出格式化支持 (Table/JSON/YAML)
-   - [ ] 配置文件支持
+1. **开始 Phase 5: 数据转换层**
+   - [ ] 设计类型映射框架
+   - [ ] 实现 MySQL → PostgreSQL 类型映射
+   - [ ] 实现 Oracle → PostgreSQL 类型映射
+   - [ ] 创建自定义 SMT (Single Message Transform)
+   - [ ] 实现 Schema 转换逻辑
+   - [ ] 添加数据转换测试
 
 2. **环境验证**
    - [x] 验证 Docker 环境所有服务正常运行
    - [x] 测试 Kafka Connect 可访问性
    - [x] 验证元数据 PostgreSQL 连接
    - [x] CI/CD 流水线验证通过
+   - [x] Connector 模块编译和测试通过
 
 3. **代码质量**
    - [x] Checkstyle 代码规范检查
    - [x] SpotBugs 静态分析
+   - [x] Connector 模块 38 个测试通过
    - [ ] 提升单元测试覆盖率到 60%
-   - [ ] 添加集成测试 (Docker 环境)
+   - [ ] 添加更多集成测试 (Docker 环境)
 
 ### 短期目标 (2周内)
 
-1. **完成 Phase 3-4**
-   - CLI 工具功能完整
-   - Debezium Connector 集成
-   - 基础的 CDC 数据同步功能
+1. **完成 Phase 5-6**
+   - 数据转换层完成
+   - JDBC Sink 集成
+   - 任务编排引擎
+   - 完整的 CDC 数据同步功能
 
 2. **端到端测试**
    - CLI → Metadata Service → Kafka Connect 集成
    - MySQL → PostgreSQL 同步测试
+   - 数据类型转换验证
 
 ### 中期目标 (1个月内)
 
 1. **完成核心框架**
-   - Phase 3-6 全部完成
+   - Phase 5-8 全部完成
    - 完整的数据迁移流程
    - 任务执行和进度跟踪
+   - 监控与可观测性
 
 2. **集成测试**
    - 端到端迁移测试
    - 性能和压力测试
+   - 文档完善
 
 ## 资源链接
 

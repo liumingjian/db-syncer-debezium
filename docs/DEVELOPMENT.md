@@ -136,8 +136,59 @@ mvn clean compile
 mvn clean install -DskipTests
 
 # 完整构建(包含测试)
-mvn clean install
-```
+  mvn clean install
+  ```
+
+## 数据转换与 SMT 调试
+
+本项目提供 `ApplyTypeMapping` SMT 以统一 Debezium 事件中的逻辑类型与不同源数据库的类型。
+
+- 启用方式（生成 Source Connector 配置模板时）:
+  ```bash
+  dbsyncer config generate <task> --type source \
+    --enable-type-mapping \
+    --type-mapping-source-db mysql \
+    --type-mapping-enable-time true \
+    --type-mapping-enable-json true \
+    # 可选：Decimal 转换
+    transforms.applyTypeMapping.enable.decimal.mapping=true \
+    transforms.applyTypeMapping.decimal.target=string
+  ```
+
+- 也可通过任务元数据默认值（`source_properties`）控制:
+  ```
+  typeMapping.enabled=true
+  typeMapping.sourceDb=mysql
+  typeMapping.enableTime=true
+  typeMapping.enableJson=true
+  typeMapping.enableDecimal=true
+  typeMapping.decimalTarget=string
+  ```
+
+启用后，配置中将注入 `transforms.applyTypeMapping.*` 参数，SMT 会将 Debezium 时间逻辑类型映射为 Kafka Connect 标准 Date/Time/Timestamp，并将 Debezium Json 逻辑类型映射为字符串，便于 JDBC Sink 处理。
+
+### Debezium 2.x 与 JDBC Sink E2E 提示
+
+- MySQL Source
+  - 使用 `topic.prefix`（替代 `database.server.name`）。
+  - 提供唯一 `database.server.id`（可由任务 ID 派生）。
+  - file-based schema history（无需额外 Kafka 主题）：
+    - `schema.history.internal=io.debezium.storage.file.history.FileSchemaHistory`
+    - `schema.history.internal.file.filename=/kafka/connect/custom-connectors/schema-history/<task>.dat`
+  - 演示环境建议 `snapshot.locking.mode=none`，避免因 MySQL 账号缺少 RELOAD/LOCK TABLES 权限导致 snapshot 失败。
+
+- JDBC Sink
+  - 覆盖转换器以启用 schema：`key/value.converter.schemas.enable=true`。
+  - 注入 SMT：
+    - `ExtractNewRecordState`：解包 Debezium Envelope -> 扁平记录。
+    - `RegexRouter`：将 `prefix.db.table` 路由为 `table`，便于按表名建表。
+  - `topics.regex` 仅匹配业务数据主题（排除 schema history）。
+
+- 容器内主机名
+  - Source/Sink 连接数据库时使用容器服务名（例如 `mysql-source`、`postgres-target`）。
+
+- Kafka Connect REST
+  - 默认 `http://localhost:8083`，可通过 `CONNECT_REST_URL` 覆盖。
 
 ## 项目结构
 

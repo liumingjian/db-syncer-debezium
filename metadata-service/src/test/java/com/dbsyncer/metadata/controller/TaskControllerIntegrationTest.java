@@ -109,7 +109,7 @@ class TaskControllerIntegrationTest {
         mockMvc.perform(get("/api/v1/tasks/{taskId}", "00000000-0000-0000-0000-000000000000"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").containsString("not found"));
+                .andExpect(jsonPath("$.message", containsString("not found")));
     }
 
     @Test
@@ -125,7 +125,7 @@ class TaskControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.message").containsString("already exists"));
+                .andExpect(jsonPath("$.message", containsString("already exists")));
     }
 
     @Test

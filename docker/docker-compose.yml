@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Zookeeper for Kafka
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.1
+    image: confluentinc/cp-zookeeper:7.5.0
     hostname: zookeeper
     container_name: db-syncer-zookeeper
     ports:
@@ -19,7 +19,7 @@ services:
 
   # Kafka Broker
   kafka:
-    image: confluentinc/cp-kafka:7.6.1
+    image: confluentinc/cp-kafka:7.5.0
     hostname: kafka
     container_name: db-syncer-kafka
     depends_on:
@@ -46,7 +46,7 @@ services:
 
   # Kafka Connect
   kafka-connect:
-    image: debezium/connect:2.6
+    image: debezium/connect:2.5
     hostname: kafka-connect
     container_name: db-syncer-kafka-connect
     depends_on:
@@ -95,7 +95,7 @@ services:
 
   # MySQL Source (for testing)
   mysql-source:
-    image: mysql:8.3
+    image: mysql:8.0
     hostname: mysql-source
     container_name: db-syncer-mysql-source
     ports:
@@ -172,7 +172,7 @@ services:
     hostname: grafana
     container_name: db-syncer-grafana
     ports:
-      - "3000:3000"
+      - "3005:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin

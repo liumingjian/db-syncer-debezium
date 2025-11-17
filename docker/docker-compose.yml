@@ -1,0 +1,196 @@
+version: '3.8'
+
+services:
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    hostname: zookeeper
+    container_name: db-syncer-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - db-syncer-network
+
+  # Kafka Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    hostname: kafka
+    container_name: db-syncer-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - db-syncer-network
+
+  # Kafka Connect
+  kafka-connect:
+    image: debezium/connect:2.6
+    hostname: kafka-connect
+    container_name: db-syncer-kafka-connect
+    depends_on:
+      - kafka
+      - metadata-postgres
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:29092
+      GROUP_ID: db-syncer-connect-cluster
+      CONFIG_STORAGE_TOPIC: db-syncer-connect-configs
+      OFFSET_STORAGE_TOPIC: db-syncer-connect-offsets
+      STATUS_STORAGE_TOPIC: db-syncer-connect-status
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+    networks:
+      - db-syncer-network
+    volumes:
+      - ./connectors:/kafka/connect/custom-connectors
+
+  # PostgreSQL for Metadata
+  metadata-postgres:
+    image: postgres:12-alpine
+    hostname: metadata-postgres
+    container_name: db-syncer-metadata-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: db_syncer_metadata
+      POSTGRES_USER: dbsyncer
+      POSTGRES_PASSWORD: dbsyncer_pass
+    volumes:
+      - metadata-postgres-data:/var/lib/postgresql/data
+    networks:
+      - db-syncer-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbsyncer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Source (for testing)
+  mysql-source:
+    image: mysql:8.3
+    hostname: mysql-source
+    container_name: db-syncer-mysql-source
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql_root_pass
+      MYSQL_DATABASE: source_db
+      MYSQL_USER: dbuser
+      MYSQL_PASSWORD: dbpass
+    command:
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --binlog-row-image=FULL
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+    volumes:
+      - mysql-source-data:/var/lib/mysql
+    networks:
+      - db-syncer-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pmysql_root_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Target (for testing)
+  postgres-target:
+    image: postgres:12-alpine
+    hostname: postgres-target
+    container_name: db-syncer-postgres-target
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: target_db
+      POSTGRES_USER: targetuser
+      POSTGRES_PASSWORD: targetpass
+    command:
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    volumes:
+      - postgres-target-data:/var/lib/postgresql/data
+    networks:
+      - db-syncer-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U targetuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus
+    container_name: db-syncer-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - db-syncer-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    hostname: grafana
+    container_name: db-syncer-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - db-syncer-network
+
+volumes:
+  zookeeper-data:
+  zookeeper-logs:
+  kafka-data:
+  metadata-postgres-data:
+  mysql-source-data:
+  postgres-target-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  db-syncer-network:
+    driver: bridge

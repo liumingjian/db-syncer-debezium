@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: db-syncer-cli
+  main:
+    web-application-type: none
+    banner-mode: off
+
+  # Database configuration (shared with metadata-service)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dbsyncer
+    username: dbsyncer
+    password: dbsyncer_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      minimum-idle: 2
+      maximum-pool-size: 10
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      auto-commit: true
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  # Flyway - disable for CLI (migrations handled by metadata-service)
+  flyway:
+    enabled: false
+
+# Logging configuration
+logging:
+  level:
+    root: WARN
+    com.dbsyncer: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level - %msg%n"
+
+# CLI-specific configuration
+dbsyncer:
+  cli:
+    default-output-format: table
+    config-file: ~/.dbsyncer/config.yml
+    history-file: ~/.dbsyncer/history
+    max-history-size: 1000

@@ -106,6 +106,14 @@ public class TaskService {
     }
 
     /**
+     * Get all tasks with pagination (convenience method).
+     */
+    @Transactional(readOnly = true)
+    public Page<TaskResponse> getAllTasks(int page, int size) {
+        return getAllTasks(org.springframework.data.domain.PageRequest.of(page, size));
+    }
+
+    /**
      * Get tasks by status.
      */
     @Transactional(readOnly = true)

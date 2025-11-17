@@ -3,7 +3,10 @@ package com.dbsyncer.metadata.dto;
 import com.dbsyncer.metadata.entity.DatabaseType;
 import com.dbsyncer.metadata.entity.MigrationTask;
 import com.dbsyncer.metadata.entity.TaskStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -13,6 +16,9 @@ import java.util.UUID;
  * DTO for task response.
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskResponse {
     private UUID id;
     private String taskName;

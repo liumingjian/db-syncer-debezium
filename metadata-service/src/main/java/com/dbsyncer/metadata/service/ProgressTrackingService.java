@@ -65,6 +65,14 @@ public class ProgressTrackingService {
     }
 
     /**
+     * Get all table progress entities for a task.
+     */
+    @Transactional(readOnly = true)
+    public List<TableProgress> getTableProgress(UUID taskId) {
+        return progressRepository.findByTaskId(taskId);
+    }
+
+    /**
      * Get progress for a specific table.
      */
     @Transactional(readOnly = true)

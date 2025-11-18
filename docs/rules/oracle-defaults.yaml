@@ -1,0 +1,18 @@
+sourceDb: oracle
+overrides:
+  # Map RAW to bytea explicitly
+  - name: raw
+    target: bytea
+
+  # Example: NUMBER(p,0) small precision to integer (uncomment and adjust as needed)
+  # - name: number
+  #   precisionEquals: 9
+  #   scaleEquals: 0
+  #   target: integer
+
+  # Example: NUMBER(p,0) medium to bigint
+  # - name: number
+  #   precisionEquals: 18
+  #   scaleEquals: 0
+  #   target: bigint
+

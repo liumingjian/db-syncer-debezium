@@ -1,0 +1,20 @@
+sourceDb: mysql
+overrides:
+  # Treat tinyint(1) as boolean
+  - name: tinyint
+    lengthEquals: 1
+    target: boolean
+
+  # Map unsigned bigint to numeric(20,0)
+  - name: bigint
+    unsigned: true
+    target: numeric(20,0)
+
+  # Ensure json maps to jsonb
+  - name: json
+    target: jsonb
+
+  # Example: normalize datetime to timestamp without time zone (uncomment if desired)
+  # - name: datetime
+  #   target: timestamp without time zone
+

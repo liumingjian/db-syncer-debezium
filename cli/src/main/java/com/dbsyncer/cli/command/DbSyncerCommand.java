@@ -12,8 +12,10 @@ import picocli.CommandLine.Option;
     version = "1.0.0-SNAPSHOT",
     subcommands = {
         TaskCommand.class,
+        TransformCommand.class,
         StatusCommand.class,
-        ConfigCommand.class
+        ConfigCommand.class,
+        MonitorCommand.class
     }
 )
 public class DbSyncerCommand implements Runnable {
@@ -32,6 +34,7 @@ public class DbSyncerCommand implements Runnable {
         System.out.println("  task     Manage migration tasks");
         System.out.println("  status   Query task status and progress");
         System.out.println("  config   Manage connector configurations");
+        System.out.println("  monitor  Monitor a running task");
         System.out.println();
         System.out.println("Use 'dbsyncer <command> --help' for more information about a command.");
     }

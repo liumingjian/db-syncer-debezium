@@ -61,7 +61,11 @@ public class CliConfigService {
         configRepository.save(config);
     }
 
-    public String generateConfigTemplate(String taskIdentifier, String connectorType) {
+    public String generateConfigTemplate(String taskIdentifier, String connectorType,
+                                         boolean enableTypeMapping,
+                                         String typeMappingSourceDb,
+                                         boolean typeMappingEnableTime,
+                                         boolean typeMappingEnableJson) {
         UUID taskId = resolveTaskId(taskIdentifier);
         MigrationTask task = taskRepository.findById(taskId)
             .orElseThrow(() -> new RuntimeException("Task not found: " + taskIdentifier));
@@ -70,7 +74,8 @@ public class CliConfigService {
         Map<String, Object> template = new HashMap<>();
 
         if (type == ConnectorType.SOURCE) {
-            template = generateSourceConnectorTemplate(task);
+            template = generateSourceConnectorTemplate(task, enableTypeMapping, typeMappingSourceDb,
+                    typeMappingEnableTime, typeMappingEnableJson);
         } else if (type == ConnectorType.SINK) {
             template = generateSinkConnectorTemplate(task);
         }
@@ -82,7 +87,11 @@ public class CliConfigService {
         }
     }
 
-    private Map<String, Object> generateSourceConnectorTemplate(MigrationTask task) {
+    private Map<String, Object> generateSourceConnectorTemplate(MigrationTask task,
+                                                                boolean enableTypeMapping,
+                                                                String typeMappingSourceDb,
+                                                                boolean typeMappingEnableTime,
+                                                                boolean typeMappingEnableJson) {
         Map<String, Object> config = new HashMap<>();
 
         String connectorClass = switch (task.getSourceType()) {
@@ -122,7 +131,44 @@ public class CliConfigService {
         config.put("key.converter", "org.apache.kafka.connect.json.JsonConverter");
         config.put("value.converter", "org.apache.kafka.connect.json.JsonConverter");
 
+        // Resolve defaults from task sourceProperties when flags not provided
+        Map<String, Object> sp = task.getSourceProperties();
+        boolean finalEnable = enableTypeMapping || getBool(sp, "typeMapping.enabled", false);
+        String finalSourceDb = (typeMappingSourceDb != null && !typeMappingSourceDb.isBlank())
+                ? typeMappingSourceDb
+                : getString(sp, "typeMapping.sourceDb");
+        boolean finalEnableTime = typeMappingEnableTime;
+        boolean finalEnableJson = typeMappingEnableJson;
+        if (sp != null && !sp.isEmpty()) {
+            finalEnableTime = getBool(sp, "typeMapping.enableTime", typeMappingEnableTime);
+            finalEnableJson = getBool(sp, "typeMapping.enableJson", typeMappingEnableJson);
+        }
+
+        // Optional SMT injection
+        if (finalEnable && finalSourceDb != null && !finalSourceDb.isBlank()) {
+            config.put("transforms", "applyTypeMapping");
+            config.put("transforms.applyTypeMapping.type",
+                    "com.dbsyncer.transformations.smt.ApplyTypeMapping");
+            config.put("transforms.applyTypeMapping.source.db", finalSourceDb);
+            config.put("transforms.applyTypeMapping.enable.time.mapping", String.valueOf(finalEnableTime));
+            config.put("transforms.applyTypeMapping.enable.json.mapping", String.valueOf(finalEnableJson));
+        }
+
         return config;
+    }
+
+    private static boolean getBool(Map<String, Object> map, String key, boolean def) {
+        if (map == null) return def;
+        Object v = map.get(key);
+        if (v == null) return def;
+        if (v instanceof Boolean b) return b;
+        return Boolean.parseBoolean(v.toString());
+    }
+
+    private static String getString(Map<String, Object> map, String key) {
+        if (map == null) return null;
+        Object v = map.get(key);
+        return v == null ? null : v.toString();
     }
 
     private Map<String, Object> generateSinkConnectorTemplate(MigrationTask task) {

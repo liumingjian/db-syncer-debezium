@@ -15,7 +15,7 @@
     <name>DB Syncer CLI</name>
     <description>Command-line interface tool</description>
 
-    <dependencies>
+        <dependencies>
         <!-- Internal -->
         <dependency>
             <groupId>com.dbsyncer</groupId>
@@ -23,8 +23,18 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-json</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.dbsyncer</groupId>
             <artifactId>metadata-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dbsyncer</groupId>
+            <artifactId>transformations</artifactId>
             <version>${project.version}</version>
         </dependency>
 

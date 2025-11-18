@@ -142,6 +142,18 @@ public class ConfigCommand implements Runnable {
         @Option(names = {"-o", "--output"}, description = "Output file path")
         private String outputFile;
 
+        @Option(names = {"--enable-type-mapping"}, description = "Enable ApplyTypeMapping SMT on source connector", defaultValue = "false")
+        private boolean enableTypeMapping;
+
+        @Option(names = {"--type-mapping-source-db"}, description = "Source DB for type mapping (mysql, oracle, postgresql)")
+        private String typeMappingSourceDb;
+
+        @Option(names = {"--type-mapping-enable-time"}, description = "Enable time logical mapping (default: true)", defaultValue = "true")
+        private boolean typeMappingEnableTime;
+
+        @Option(names = {"--type-mapping-enable-json"}, description = "Enable JSON logical mapping (default: true)", defaultValue = "true")
+        private boolean typeMappingEnableJson;
+
         public GenerateCommand(CliConfigService configService) {
             this.configService = configService;
         }
@@ -149,7 +161,9 @@ public class ConfigCommand implements Runnable {
         @Override
         public void run() {
             try {
-                String template = configService.generateConfigTemplate(taskIdentifier, connectorType);
+                String template = configService.generateConfigTemplate(taskIdentifier, connectorType,
+                        enableTypeMapping, typeMappingSourceDb,
+                        typeMappingEnableTime, typeMappingEnableJson);
                 if (outputFile != null) {
                     java.nio.file.Files.writeString(java.nio.file.Path.of(outputFile), template);
                     System.out.println("Configuration template written to: " + outputFile);

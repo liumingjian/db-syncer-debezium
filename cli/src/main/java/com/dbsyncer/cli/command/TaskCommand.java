@@ -28,7 +28,9 @@ import java.util.UUID;
         TaskCommand.StartCommand.class,
         TaskCommand.StopCommand.class,
         TaskCommand.PauseCommand.class,
-        TaskCommand.ResumeCommand.class
+        TaskCommand.ResumeCommand.class,
+        TaskCommand.PropsCommand.class,
+        TaskCommand.LogsCommand.class
     }
 )
 public class TaskCommand implements Runnable {
@@ -39,6 +41,80 @@ public class TaskCommand implements Runnable {
     @Override
     public void run() {
         System.out.println("Task management commands. Use 'dbsyncer task --help' for available subcommands.");
+    }
+
+    @Component
+    @Command(name = "props", description = "Manage task properties (source_properties/target_properties)", subcommands = {
+            TaskCommand.PropsCommand.SetCommand.class
+    })
+    public static class PropsCommand implements Runnable {
+        @Override
+        public void run() {
+            System.out.println("Use subcommands: set");
+        }
+
+        @Component
+        @Command(name = "set", description = "Set a task property")
+        public static class SetCommand implements Runnable {
+
+            private final com.dbsyncer.metadata.service.TaskService taskService;
+            private final com.dbsyncer.metadata.repository.MigrationTaskRepository taskRepository;
+
+            public SetCommand(com.dbsyncer.metadata.service.TaskService taskService,
+                              com.dbsyncer.metadata.repository.MigrationTaskRepository taskRepository) {
+                this.taskService = taskService;
+                this.taskRepository = taskRepository;
+            }
+
+            @Parameters(index = "0", description = "Task ID or name")
+            private String taskIdentifier;
+
+            @Option(names = {"--scope"}, description = "Property scope: source|target (default: source)", defaultValue = "source")
+            private String scope;
+
+            @Option(names = {"--key"}, required = true, description = "Property key (e.g., typeMapping.rulesPath)")
+            private String key;
+
+            @Option(names = {"--value"}, required = true, description = "Property value")
+            private String value;
+
+            @Override
+            public void run() {
+                try {
+                    java.util.UUID taskId = resolveTaskId(taskIdentifier);
+                    var task = taskRepository.findById(taskId)
+                            .orElseThrow(() -> new RuntimeException("Task not found: " + taskIdentifier));
+
+                    var update = new com.dbsyncer.metadata.dto.TaskUpdateRequest();
+                    if ("target".equalsIgnoreCase(scope)) {
+                        java.util.Map<String, Object> m = task.getTargetProperties();
+                        if (m == null) m = new java.util.HashMap<>(); else m = new java.util.HashMap<>(m);
+                        m.put(key, value);
+                        update.setTargetProperties(m);
+                    } else {
+                        java.util.Map<String, Object> m = task.getSourceProperties();
+                        if (m == null) m = new java.util.HashMap<>(); else m = new java.util.HashMap<>(m);
+                        m.put(key, value);
+                        update.setSourceProperties(m);
+                    }
+
+                    var resp = taskService.updateTask(taskId, update);
+                    System.out.println("Property set successfully for task '" + resp.getTaskName() + "': " + scope + "." + key + "=" + value);
+                } catch (Exception e) {
+                    System.err.println("Error setting task property: " + e.getMessage());
+                    System.exit(1);
+                }
+            }
+
+            private java.util.UUID resolveTaskId(String identifier) {
+                try {
+                    return java.util.UUID.fromString(identifier);
+                } catch (IllegalArgumentException e) {
+                    return java.util.UUID.fromString(taskRepository.findByTaskName(identifier)
+                            .orElseThrow(() -> new RuntimeException("Task not found: " + identifier)).getId().toString());
+                }
+            }
+        }
     }
 
     @Component
@@ -90,6 +166,18 @@ public class TaskCommand implements Runnable {
         @Option(names = {"--target-pass"}, required = true, description = "Target database password")
         private String targetPassword;
 
+        @Option(names = {"--snapshot-mode"}, description = "Debezium snapshot.mode (initial, initial_only, never, schema_only, no_data)", defaultValue = "initial")
+        private String snapshotMode = "initial";
+
+        @Option(names = {"--incremental-snapshot"}, description = "Enable Debezium incremental snapshot (initial_only + chunking)")
+        private Boolean incrementalSnapshot = false;
+
+        @Option(names = {"--snapshot-chunk-size"}, description = "Incremental snapshot chunk size", defaultValue = "10000")
+        private Integer snapshotChunkSize = 10000;
+
+        @Option(names = {"--parallel-tables"}, description = "Parallel tables (JDBC sink tasks.max)", defaultValue = "1")
+        private Integer parallelTables = 1;
+
         @Option(names = {"-f", "--format"}, description = "Output format (table, json, yaml)", defaultValue = "table")
         private String outputFormat;
 
@@ -116,6 +204,10 @@ public class TaskCommand implements Runnable {
                 request.setTargetDatabase(targetDatabase);
                 request.setTargetUsername(targetUsername);
                 request.setTargetPassword(targetPassword);
+                request.setSnapshotMode(snapshotMode);
+                request.setIncrementalSnapshot(incrementalSnapshot);
+                request.setSnapshotChunkSize(snapshotChunkSize);
+                request.setParallelTables(parallelTables);
 
                 TaskResponse response = taskService.createTask(request);
                 System.out.println("Task created successfully!");
@@ -357,6 +449,79 @@ public class TaskCommand implements Runnable {
                 System.err.println("Error resuming task: " + e.getMessage());
                 System.exit(1);
             }
+        }
+    }
+
+    @Component
+    @Command(name = "logs", description = "Show execution logs for a task")
+    public static class LogsCommand implements Runnable {
+
+        private final CliTaskService taskService;
+
+        @Parameters(index = "0", description = "Task ID or name")
+        private String taskIdentifier;
+
+        @Option(names = {"--level"}, description = "Filter by log level (INFO, WARN, ERROR)")
+        private String level;
+
+        @Option(names = {"--limit"}, description = "Max number of log entries to show", defaultValue = "100")
+        private int limit;
+
+        public LogsCommand(CliTaskService taskService) {
+            this.taskService = taskService;
+        }
+
+        @Override
+        public void run() {
+            try {
+                TaskResponse task = taskService.getTask(taskIdentifier);
+                java.util.UUID taskId = task.getId();
+
+                System.out.println("=== Task Logs ===");
+                System.out.println("ID:   " + task.getId());
+                System.out.println("Name: " + task.getTaskName());
+                System.out.println("Showing last " + limit + " log entries"
+                        + (level != null && !level.isBlank() ? " with level " + level.toUpperCase() : "") + ":\n");
+
+                java.util.List<com.dbsyncer.metadata.entity.TaskLog> logs =
+                        taskService.getTaskLogs(taskId, level, limit);
+
+                if (logs.isEmpty()) {
+                    System.out.println("No logs found for this task.");
+                    return;
+                }
+
+                System.out.printf("%-23s  %-5s  %-15s  %s%n",
+                        "TIME", "LVL", "SOURCE", "MESSAGE");
+                System.out.println("-".repeat(80));
+
+                for (com.dbsyncer.metadata.entity.TaskLog log : logs) {
+                    String time = log.getLoggedAt() != null
+                            ? log.getLoggedAt().toString()
+                            : "";
+                    String lvl = log.getLogLevel() != null ? log.getLogLevel() : "";
+                    String src = log.getSourceComponent() != null ? log.getSourceComponent() : "";
+                    String msg = log.getMessage() != null ? log.getMessage() : "";
+                    System.out.printf("%-23s  %-5s  %-15s  %s%n",
+                            truncate(time, 23),
+                            truncate(lvl, 5),
+                            truncate(src, 15),
+                            msg);
+                }
+            } catch (Exception e) {
+                System.err.println("Error showing task logs: " + e.getMessage());
+                System.exit(1);
+            }
+        }
+
+        private String truncate(String str, int maxLength) {
+            if (str == null) {
+                return "";
+            }
+            if (str.length() <= maxLength) {
+                return str;
+            }
+            return str.substring(0, maxLength - 3) + "...";
         }
     }
 }

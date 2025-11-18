@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: db-syncer-e2e-tests
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+logging:
+  level:
+    com.dbsyncer: INFO
+    org.springframework: INFO
+

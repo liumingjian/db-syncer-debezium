@@ -20,6 +20,8 @@
         <module>connectors</module>
         <module>transformations</module>
         <module>monitoring</module>
+        <!-- End-to-end integration tests (Docker / Testcontainers) -->
+        <module>e2e-tests</module>
     </modules>
 
     <properties>

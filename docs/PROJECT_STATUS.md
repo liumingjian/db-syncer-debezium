@@ -1,6 +1,6 @@
 # DB-Syncer-Debezium 项目状态
 
-> 最后更新: 2025-11-17
+> 最后更新: 2025-11-18
 
 ## 项目概览
 
@@ -33,6 +33,10 @@
    - Issue 模板 (Bug Report, Feature Request, Task)
    - 自动化 Issue 创建脚本
    - 38 个详细的开发任务 Issues
+
+5. **MVP 与运维文档（草稿）**
+   - MVP 能力标准: `docs/MVP_CRITERIA.md`
+   - 生产运行手册: `docs/OPERATIONS.md`
 
 ## GitHub Issues 统计
 
@@ -193,17 +197,26 @@ db-syncer-debezium/
 
 ### 立即可做 (本周)
 
-1. **Phase 6 收尾**
+> 说明：本节侧重“总体开发路线”。若要评估是否具备生产 MVP 能力，请结合 `docs/MVP_CRITERIA.md`。
+
+1. **面向生产 MVP 的优先事项**
+   - [ ] 完成任务进度跟踪与断点续传（对应 Issue #40，参考 MVP_CRITERIA 2.x）
+   - [ ] 完成错误分类与重试策略（对应 Issue #41，参考 MVP_CRITERIA 2.x）
+   - [ ] 实现至少一套自动化 E2E 测试（MySQL → PostgreSQL，参考 MVP_CRITERIA 6.x）
+   - [ ] 落地基础监控指标与告警（对应 Phase 7 核心 Issue，参考 MVP_CRITERIA 3.x）
+   - [ ] 完成首版生产运维文档并回收试点反馈（`docs/OPERATIONS.md`）
+
+2. **Phase 6 收尾**
    - [ ] 进度跟踪指标（任务级/表级/ETA）
    - [ ] 错误处理与重试（分类/退避/DLQ/告警）
    - [ ] 增量快照/多表并行能力
    - [ ] 任务执行端到端集成测试
 
-2. **Phase 5: 数据转换层**
+3. **Phase 5: 数据转换层**
    - [ ] 类型映射框架与默认规则完善
    - [ ] 时间/JSON/Decimal 细节回归测试
 
-3. **环境与质量**
+4. **环境与质量**
    - [x] Docker 环境验证
    - [x] Kafka Connect 可访问性
    - [x] 元数据 PostgreSQL 连接验证

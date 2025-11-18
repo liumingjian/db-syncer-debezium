@@ -73,6 +73,9 @@ public class TaskCreateRequest {
     private Integer batchSize = 10000;
     private Integer maxQueueSize = 8192;
     private Integer pollIntervalMs = 1000;
+    private Boolean incrementalSnapshot = false;
+    private Integer snapshotChunkSize = 10000;
+    private Integer parallelTables = 1;
 
     // Metadata
     private String createdBy;

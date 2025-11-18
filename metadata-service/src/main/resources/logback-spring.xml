@@ -3,7 +3,8 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
     <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/metadata-service}"/>
-    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} taskId=%X{taskId} - %msg%n"/>
+    <property name="LOG_PATTERN_JSON" value='{"timestamp":"%d{yyyy-MM-dd''T''HH:mm:ss.SSSZ}","level":"%level","logger":"%logger{36}","thread":"%thread","taskId":"%X{taskId}","message":"%msg"}%n'/>
 
     <!-- Console appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -23,6 +24,18 @@
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- JSON file appender for structured logs (for ELK/Loki) -->
+    <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.json.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN_JSON}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.json.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
     </appender>
@@ -47,6 +60,7 @@
         <root level="DEBUG">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
+            <appender-ref ref="FILE_JSON"/>
         </root>
 
         <logger name="com.dbsyncer.metadata" level="DEBUG"/>
@@ -63,6 +77,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
             <appender-ref ref="ERROR_FILE"/>
+            <appender-ref ref="FILE_JSON"/>
         </root>
 
         <logger name="com.dbsyncer.metadata" level="INFO"/>
@@ -75,6 +90,7 @@
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
+            <appender-ref ref="FILE_JSON"/>
         </root>
     </springProfile>
 </configuration>

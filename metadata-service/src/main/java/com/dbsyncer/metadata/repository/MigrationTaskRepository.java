@@ -5,8 +5,7 @@ import com.dbsyncer.metadata.entity.TaskStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
@@ -48,14 +47,23 @@ public interface MigrationTaskRepository extends JpaRepository<MigrationTask, UU
     /**
      * Find all running tasks.
      */
-    @Query("SELECT t FROM MigrationTask t WHERE t.status = 'RUNNING'")
-    List<MigrationTask> findRunningTasks();
+    default List<MigrationTask> findRunningTasks() {
+        return findByStatus(TaskStatus.RUNNING);
+    }
 
     /**
      * Find all active tasks (not completed, stopped, or failed).
      */
-    @Query("SELECT t FROM MigrationTask t WHERE t.status IN ('CREATED', 'CONFIGURING', 'STARTING', 'RUNNING', 'PAUSED', 'STOPPING')")
-    List<MigrationTask> findActiveTasks();
+    default List<MigrationTask> findActiveTasks() {
+        return findByStatusIn(java.util.Arrays.asList(
+                TaskStatus.CREATED,
+                TaskStatus.CONFIGURING,
+                TaskStatus.STARTING,
+                TaskStatus.RUNNING,
+                TaskStatus.PAUSED,
+                TaskStatus.STOPPING
+        ));
+    }
 
     /**
      * Find tasks created after a specific time.
@@ -90,26 +98,45 @@ public interface MigrationTaskRepository extends JpaRepository<MigrationTask, UU
     Page<MigrationTask> findAll(Pageable pageable);
 
     /**
-     * Search tasks by name pattern.
+     * Derived query for searching by task name containing pattern.
      */
-    @Query("SELECT t FROM MigrationTask t WHERE t.taskName LIKE %:pattern%")
-    List<MigrationTask> searchByTaskName(@Param("pattern") String pattern);
+    List<MigrationTask> findByTaskNameContaining(String pattern);
+
+    /**
+     * Compatibility method name kept for service; delegates to derived query.
+     */
+    default List<MigrationTask> searchByTaskName(String pattern) {
+        return findByTaskNameContaining(pattern);
+    }
 
     /**
      * Find tasks that have been running for longer than the specified duration.
      */
-    @Query("SELECT t FROM MigrationTask t WHERE t.status = 'RUNNING' AND t.startedAt < :threshold")
-    List<MigrationTask> findLongRunningTasks(@Param("threshold") OffsetDateTime threshold);
+    List<MigrationTask> findByStatusAndStartedAtBefore(TaskStatus status, OffsetDateTime threshold);
+
+    default List<MigrationTask> findLongRunningTasks(OffsetDateTime threshold) {
+        return findByStatusAndStartedAtBefore(TaskStatus.RUNNING, threshold);
+    }
 
     /**
-     * Get task statistics summary.
+     * Get task statistics summary (built via counts to avoid JPQL literals).
      */
-    @Query("SELECT t.status, COUNT(t) FROM MigrationTask t GROUP BY t.status")
-    List<Object[]> getTaskStatusSummary();
+    default List<Object[]> getTaskStatusSummary() {
+        java.util.List<Object[]> result = new java.util.ArrayList<>();
+        for (TaskStatus s : TaskStatus.values()) {
+            long c = countByStatus(s);
+            result.add(new Object[]{s, c});
+        }
+        return result;
+    }
 
     /**
      * Delete tasks older than specified date that are in terminal status.
      */
-    @Query("DELETE FROM MigrationTask t WHERE t.status IN ('COMPLETED', 'STOPPED', 'FAILED') AND t.updatedAt < :threshold")
-    int deleteOldCompletedTasks(@Param("threshold") OffsetDateTime threshold);
+    @Modifying
+    int deleteByStatusInAndUpdatedAtBefore(java.util.List<TaskStatus> statuses, OffsetDateTime threshold);
+
+    default int deleteOldCompletedTasks(OffsetDateTime threshold) {
+        return deleteByStatusInAndUpdatedAtBefore(java.util.Arrays.asList(TaskStatus.COMPLETED, TaskStatus.STOPPED, TaskStatus.FAILED), threshold);
+    }
 }

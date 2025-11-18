@@ -21,6 +21,9 @@ public class TaskUpdateRequest {
     private Integer batchSize;
     private Integer maxQueueSize;
     private Integer pollIntervalMs;
+    private Boolean incrementalSnapshot;
+    private Integer snapshotChunkSize;
+    private Integer parallelTables;
 
     // Source properties (can be updated before starting)
     private Map<String, Object> sourceProperties;

@@ -123,6 +123,11 @@ public class OracleSourceConnectorConfig implements SourceConnectorConfig {
     @Builder.Default
     private int maxQueueSize = 8192;
 
+    // Optional transformation injection
+    @Builder.Default
+    private boolean enableTypeMappingTransform = false;
+    private String typeMappingSourceDb; // e.g. "oracle"
+
     @Override
     public String getConnectorClass() {
         return CONNECTOR_CLASS;
@@ -246,6 +251,14 @@ public class OracleSourceConnectorConfig implements SourceConnectorConfig {
         config.put("poll.interval.ms", String.valueOf(pollIntervalMs));
         config.put("max.batch.size", String.valueOf(maxBatchSize));
         config.put("max.queue.size", String.valueOf(maxQueueSize));
+
+        // Optional SMT transform to normalize schema/types
+        if (enableTypeMappingTransform && typeMappingSourceDb != null && !typeMappingSourceDb.isBlank()) {
+            config.put("transforms", "applyTypeMapping");
+            config.put("transforms.applyTypeMapping.type",
+                    "com.dbsyncer.transformations.smt.ApplyTypeMapping");
+            config.put("transforms.applyTypeMapping.source.db", typeMappingSourceDb);
+        }
 
         return config;
     }

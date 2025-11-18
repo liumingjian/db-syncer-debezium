@@ -307,6 +307,15 @@ public class KafkaConnectClient implements Closeable {
                 }
                 log.debug("Connector {} not yet running, waiting...", connectorName);
                 Thread.sleep(pollIntervalMs);
+            } catch (ConnectorNotFoundException e) {
+                // Connector may not be immediately available after creation; keep waiting
+                log.debug("Connector {} not found yet, waiting...", connectorName);
+                try {
+                    Thread.sleep(pollIntervalMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new KafkaConnectException("Interrupted while waiting for connector", ie);
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new KafkaConnectException("Interrupted while waiting for connector", e);

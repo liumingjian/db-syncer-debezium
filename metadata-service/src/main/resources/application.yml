@@ -77,3 +77,14 @@ logging:
     com.dbsyncer: INFO
     org.springframework: INFO
     org.hibernate: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+
+connect:
+  rest-url: ${CONNECT_REST_URL:http://localhost:8083}
+  wait-timeout-ms: ${CONNECT_WAIT_TIMEOUT_MS:60000}
+  poll-interval-ms: ${CONNECT_POLL_INTERVAL_MS:2000}

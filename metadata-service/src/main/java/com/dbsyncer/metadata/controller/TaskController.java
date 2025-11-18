@@ -4,6 +4,7 @@ import com.dbsyncer.metadata.dto.TaskCreateRequest;
 import com.dbsyncer.metadata.dto.TaskResponse;
 import com.dbsyncer.metadata.dto.TaskUpdateRequest;
 import com.dbsyncer.metadata.entity.TaskStatus;
+import com.dbsyncer.metadata.service.TaskExecutionService;
 import com.dbsyncer.metadata.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class TaskController {
 
     private final TaskService taskService;
+    private final TaskExecutionService executionService;
 
     /**
      * Create a new migration task.
@@ -119,7 +121,7 @@ public class TaskController {
     @PostMapping("/{taskId}/start")
     public ResponseEntity<TaskResponse> startTask(@PathVariable UUID taskId) {
         log.info("REST request to start task: {}", taskId);
-        TaskResponse response = taskService.updateTaskStatus(taskId, TaskStatus.STARTING);
+        TaskResponse response = executionService.startTask(taskId);
         return ResponseEntity.ok(response);
     }
 
@@ -129,7 +131,7 @@ public class TaskController {
     @PostMapping("/{taskId}/stop")
     public ResponseEntity<TaskResponse> stopTask(@PathVariable UUID taskId) {
         log.info("REST request to stop task: {}", taskId);
-        TaskResponse response = taskService.updateTaskStatus(taskId, TaskStatus.STOPPING);
+        TaskResponse response = executionService.stopTask(taskId);
         return ResponseEntity.ok(response);
     }
 
@@ -139,7 +141,7 @@ public class TaskController {
     @PostMapping("/{taskId}/pause")
     public ResponseEntity<TaskResponse> pauseTask(@PathVariable UUID taskId) {
         log.info("REST request to pause task: {}", taskId);
-        TaskResponse response = taskService.updateTaskStatus(taskId, TaskStatus.PAUSED);
+        TaskResponse response = executionService.pauseTask(taskId);
         return ResponseEntity.ok(response);
     }
 
@@ -149,7 +151,7 @@ public class TaskController {
     @PostMapping("/{taskId}/resume")
     public ResponseEntity<TaskResponse> resumeTask(@PathVariable UUID taskId) {
         log.info("REST request to resume task: {}", taskId);
-        TaskResponse response = taskService.updateTaskStatus(taskId, TaskStatus.RUNNING);
+        TaskResponse response = executionService.resumeTask(taskId);
         return ResponseEntity.ok(response);
     }
 

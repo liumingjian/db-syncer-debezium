@@ -154,8 +154,8 @@ db-syncer-debezium/
 │   └── config/             # Connector 配置生成器
 │
 ├── transformations/        # 数据转换层
-│   ├── smt/                # Single Message Transforms
-│   ├── mapper/             # 类型映射器
+│   ├── smt/                # Single Message Transforms（如 ApplyTypeMapping）
+│   ├── mapper/             # 类型映射器（MySQL/Oracle → PostgreSQL）
 │   └── schema/             # Schema 转换
 │
 └── monitoring/             # 监控模块
@@ -237,6 +237,32 @@ CREATE TABLE schema_history (
     timestamp TIMESTAMP NOT NULL
 );
 ```
+
+### 2. Transformations（数据转换层）
+
+**职责**:
+- 统一不同源数据库的类型，便于落地到目标（如 PostgreSQL）
+- 标准化 Debezium 事件中的逻辑类型，方便下游 Sink 处理
+
+**关键实现**:
+- `ApplyTypeMapping` SMT: 可选注入到 Source Connector，用于重写记录值的 Schema/Value
+  - 时间逻辑类型映射:
+    - `io.debezium.time.Date` → Kafka Connect `Date`
+    - `io.debezium.time.Time` → Kafka Connect `Time`
+    - `io.debezium.time.Timestamp`/`MicroTimestamp`/`NanoTimestamp` → Kafka Connect `Timestamp`
+  - JSON 逻辑类型映射:
+    - `io.debezium.data.Json` → 普通 `string`
+  - Decimal 逻辑类型:
+    - `io.debezium.data.VariableScaleDecimal` → `string`（默认）或 Kafka Connect `Decimal`（可选，存在 Schema 变更频率高的风险）
+  - 配置项:
+    - `transforms.applyTypeMapping.source.db`（mysql/oracle/postgresql）
+    - `transforms.applyTypeMapping.enable.time.mapping`（默认 true）
+    - `transforms.applyTypeMapping.enable.json.mapping`（默认 true）
+    - `transforms.applyTypeMapping.enable.decimal.mapping`（默认 true）
+    - `transforms.applyTypeMapping.decimal.target`（string/decimal，默认 string）
+
+**类型映射器**:
+- `MySqlToPostgresTypeMapper` 与 `OracleToPostgresTypeMapper` 提供列级类型映射（供 Schema 生成/校验使用）。
 
 ### 2. CLI Tool (命令行工具)
 

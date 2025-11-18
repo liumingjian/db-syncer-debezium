@@ -47,6 +47,9 @@ public class TaskResponse {
     private Integer batchSize;
     private Integer maxQueueSize;
     private Integer pollIntervalMs;
+    private Boolean incrementalSnapshot;
+    private Integer snapshotChunkSize;
+    private Integer parallelTables;
 
     // Status
     private TaskStatus status;
@@ -97,6 +100,9 @@ public class TaskResponse {
         response.setBatchSize(task.getBatchSize());
         response.setMaxQueueSize(task.getMaxQueueSize());
         response.setPollIntervalMs(task.getPollIntervalMs());
+        response.setIncrementalSnapshot(task.getIncrementalSnapshot());
+        response.setSnapshotChunkSize(task.getSnapshotChunkSize());
+        response.setParallelTables(task.getParallelTables());
 
         response.setStatus(task.getStatus());
         response.setErrorMessage(task.getErrorMessage());

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ public class ProgressTrackingService {
 
     private final TableProgressRepository progressRepository;
     private final MigrationTaskRepository taskRepository;
+    private static final long MINIMUM_PROGRESS_EVENTS_FOR_ETA = 100L;
 
     /**
      * Create progress tracking entry for a table.
@@ -202,6 +204,14 @@ public class ProgressTrackingService {
     }
 
     /**
+     * Get total estimated rows for a task (sum of estimatedRows across tables).
+     */
+    @Transactional(readOnly = true)
+    public Long getTotalEstimatedRows(UUID taskId) {
+        return progressRepository.getTotalEstimatedRows(taskId);
+    }
+
+    /**
      * Get average lag for streaming tables.
      */
     @Transactional(readOnly = true)
@@ -217,6 +227,57 @@ public class ProgressTrackingService {
         return progressRepository.findTablesWithErrors(taskId).stream()
                 .map(ProgressResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Estimate ETA (in seconds) for a task based on snapshot progress.
+     * Returns null when estimation is not reliable (e.g. missing estimates or too few processed rows).
+     */
+    @Transactional(readOnly = true)
+    public Long estimateEtaSeconds(UUID taskId) {
+        List<TableProgress> tables = progressRepository.findByTaskId(taskId);
+        if (tables.isEmpty()) {
+            return null;
+        }
+
+        long totalEstimated = 0L;
+        long totalProcessed = 0L;
+        OffsetDateTime earliestStart = null;
+
+        for (TableProgress tp : tables) {
+            if (tp.getEstimatedRows() == null || tp.getEstimatedRows() <= 0) {
+                continue;
+            }
+            if (tp.getSnapshotStartedAt() == null) {
+                continue;
+            }
+            totalEstimated += tp.getEstimatedRows();
+            totalProcessed += tp.getTotalRowsProcessed();
+            if (earliestStart == null || tp.getSnapshotStartedAt().isBefore(earliestStart)) {
+                earliestStart = tp.getSnapshotStartedAt();
+            }
+        }
+
+        if (totalEstimated <= 0 || totalProcessed < MINIMUM_PROGRESS_EVENTS_FOR_ETA || earliestStart == null) {
+            return null;
+        }
+
+        long elapsedSeconds = Duration.between(earliestStart, OffsetDateTime.now()).getSeconds();
+        if (elapsedSeconds <= 0) {
+            return null;
+        }
+
+        double rate = totalProcessed / (double) elapsedSeconds;
+        if (rate <= 0) {
+            return null;
+        }
+
+        long remaining = totalEstimated - totalProcessed;
+        if (remaining <= 0) {
+            return 0L;
+        }
+
+        return (long) (remaining / rate);
     }
 
     private void updateTaskCompletedTables(UUID taskId) {

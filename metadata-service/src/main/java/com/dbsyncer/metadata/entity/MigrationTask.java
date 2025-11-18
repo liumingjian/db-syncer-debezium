@@ -8,6 +8,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import org.hibernate.annotations.Type;
+import com.dbsyncer.metadata.entity.converter.DatabaseTypeConverter;
+import com.dbsyncer.metadata.entity.converter.TaskStatusConverter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -122,6 +126,18 @@ public class MigrationTask {
     @Column(name = "poll_interval_ms")
     @Builder.Default
     private Integer pollIntervalMs = 1000;
+
+    @Column(name = "incremental_snapshot")
+    @Builder.Default
+    private Boolean incrementalSnapshot = false;
+
+    @Column(name = "snapshot_chunk_size")
+    @Builder.Default
+    private Integer snapshotChunkSize = 10000;
+
+    @Column(name = "parallel_tables")
+    @Builder.Default
+    private Integer parallelTables = 1;
 
     // Task status
     @NotNull

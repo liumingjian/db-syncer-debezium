@@ -16,10 +16,27 @@
     <description>Metadata management service with PostgreSQL storage</description>
 
     <dependencies>
+        <!-- Spring Boot Actuator & Metrics -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Micrometer Prometheus Registry -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- Internal -->
         <dependency>
             <groupId>com.dbsyncer</groupId>
             <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dbsyncer</groupId>
+            <artifactId>connectors</artifactId>
             <version>${project.version}</version>
         </dependency>
 

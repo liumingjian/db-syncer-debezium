@@ -77,6 +77,16 @@ public class ProgressController {
     }
 
     /**
+     * Get ETA (seconds) for task completion if it can be estimated, otherwise returns null.
+     */
+    @GetMapping("/eta")
+    public ResponseEntity<Long> getEtaSeconds(@PathVariable UUID taskId) {
+        log.debug("REST request to get ETA for task: {}", taskId);
+        Long etaSeconds = progressTrackingService.estimateEtaSeconds(taskId);
+        return ResponseEntity.ok(etaSeconds);
+    }
+
+    /**
      * Get tables with errors.
      */
     @GetMapping("/errors")

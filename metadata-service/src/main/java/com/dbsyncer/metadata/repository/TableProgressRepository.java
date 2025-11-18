@@ -34,6 +34,11 @@ public interface TableProgressRepository extends JpaRepository<TableProgress, UU
     List<TableProgress> findByTaskIdAndStatus(UUID taskId, ProgressStatus status);
 
     /**
+     * Count tables by status across all tasks.
+     */
+    long countByStatus(ProgressStatus status);
+
+    /**
      * Count tables by status for a task.
      */
     long countByTaskIdAndStatus(UUID taskId, ProgressStatus status);
@@ -57,6 +62,12 @@ public interface TableProgressRepository extends JpaRepository<TableProgress, UU
     Long getTotalRowsProcessed(@Param("taskId") UUID taskId);
 
     /**
+     * Get total rows processed for all tasks.
+     */
+    @Query("SELECT COALESCE(SUM(tp.snapshotRowsWritten), 0) + COALESCE(SUM(tp.streamingEventsProcessed), 0) FROM TableProgress tp")
+    Long getTotalRowsProcessedForAllTasks();
+
+    /**
      * Get total estimated rows for a task.
      */
     @Query("SELECT COALESCE(SUM(tp.estimatedRows), 0) FROM TableProgress tp WHERE tp.task.id = :taskId")
@@ -67,6 +78,12 @@ public interface TableProgressRepository extends JpaRepository<TableProgress, UU
      */
     @Query("SELECT COALESCE(AVG(tp.currentLagMs), 0) FROM TableProgress tp WHERE tp.task.id = :taskId AND tp.status = 'STREAMING'")
     Double getAverageLag(@Param("taskId") UUID taskId);
+
+    /**
+     * Get average lag in milliseconds for all streaming tables.
+     */
+    @Query("SELECT COALESCE(AVG(tp.currentLagMs), 0) FROM TableProgress tp WHERE tp.status = 'STREAMING'")
+    Double getGlobalAverageLag();
 
     /**
      * Get progress summary for a task.
@@ -84,4 +101,10 @@ public interface TableProgressRepository extends JpaRepository<TableProgress, UU
      */
     @Query("SELECT tp FROM TableProgress tp WHERE tp.task.id = :taskId AND tp.status IN ('SNAPSHOTTING', 'STREAMING') AND tp.updatedAt < :threshold")
     List<TableProgress> findStaleTables(@Param("taskId") UUID taskId, @Param("threshold") java.time.OffsetDateTime threshold);
+
+    /**
+     * Count tables that currently have errors.
+     */
+    @Query("SELECT COUNT(tp) FROM TableProgress tp WHERE tp.errorCount > 0")
+    long countTablesWithErrors();
 }

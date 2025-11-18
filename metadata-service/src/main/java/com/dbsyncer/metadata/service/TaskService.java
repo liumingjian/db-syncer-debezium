@@ -65,6 +65,9 @@ public class TaskService {
                 .batchSize(request.getBatchSize())
                 .maxQueueSize(request.getMaxQueueSize())
                 .pollIntervalMs(request.getPollIntervalMs())
+                .incrementalSnapshot(request.getIncrementalSnapshot() != null ? request.getIncrementalSnapshot() : Boolean.FALSE)
+                .snapshotChunkSize(request.getSnapshotChunkSize() != null ? request.getSnapshotChunkSize() : 10000)
+                .parallelTables(request.getParallelTables() != null ? request.getParallelTables() : 1)
                 .createdBy(request.getCreatedBy())
                 .tags(request.getTags() != null ? request.getTags() : new java.util.ArrayList<>())
                 .status(TaskStatus.CREATED)
@@ -157,6 +160,15 @@ public class TaskService {
         }
         if (request.getPollIntervalMs() != null) {
             task.setPollIntervalMs(request.getPollIntervalMs());
+        }
+        if (request.getIncrementalSnapshot() != null) {
+            task.setIncrementalSnapshot(request.getIncrementalSnapshot());
+        }
+        if (request.getSnapshotChunkSize() != null) {
+            task.setSnapshotChunkSize(request.getSnapshotChunkSize());
+        }
+        if (request.getParallelTables() != null) {
+            task.setParallelTables(request.getParallelTables());
         }
         if (request.getSourceProperties() != null) {
             task.setSourceProperties(request.getSourceProperties());

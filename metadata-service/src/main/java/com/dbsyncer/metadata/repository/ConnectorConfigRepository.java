@@ -3,8 +3,7 @@ package com.dbsyncer.metadata.repository;
 import com.dbsyncer.metadata.entity.ConnectorConfig;
 import com.dbsyncer.metadata.entity.ConnectorType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,7 +39,7 @@ public interface ConnectorConfigRepository extends JpaRepository<ConnectorConfig
     /**
      * Find all connectors for a task by type.
      */
-    List<ConnectorConfig> findByTaskIdAndConnectorType(UUID taskId, ConnectorType connectorType, org.springframework.data.domain.Sort sort);
+    List<ConnectorConfig> findByTaskIdAndConnectorType(UUID taskId, ConnectorType connectorType, Sort sort);
 
     /**
      * Find all deployed connectors.
@@ -65,29 +64,28 @@ public interface ConnectorConfigRepository extends JpaRepository<ConnectorConfig
     /**
      * Find connectors with errors.
      */
-    @Query("SELECT cc FROM ConnectorConfig cc WHERE cc.errorMessage IS NOT NULL")
-    List<ConnectorConfig> findConnectorsWithErrors();
+    List<ConnectorConfig> findByErrorMessageIsNotNull();
 
     /**
      * Find source connector for a task.
      */
-    @Query("SELECT cc FROM ConnectorConfig cc WHERE cc.task.id = :taskId AND cc.connectorType = 'SOURCE'")
-    Optional<ConnectorConfig> findSourceConnector(@Param("taskId") UUID taskId);
+    Optional<ConnectorConfig> findFirstByTaskIdAndConnectorType(UUID taskId, ConnectorType connectorType);
+
+    default Optional<ConnectorConfig> findSourceConnector(UUID taskId) {
+        return findFirstByTaskIdAndConnectorType(taskId, ConnectorType.SOURCE);
+    }
 
     /**
      * Find sink connector for a task.
      */
-    @Query("SELECT cc FROM ConnectorConfig cc WHERE cc.task.id = :taskId AND cc.connectorType = 'SINK'")
-    Optional<ConnectorConfig> findSinkConnector(@Param("taskId") UUID taskId);
+    default Optional<ConnectorConfig> findSinkConnector(UUID taskId) {
+        return findFirstByTaskIdAndConnectorType(taskId, ConnectorType.SINK);
+    }
 
     /**
      * Delete all connectors for a task.
      */
     void deleteByTaskId(UUID taskId);
 
-    /**
-     * Update deployed status for a connector.
-     */
-    @Query("UPDATE ConnectorConfig cc SET cc.deployed = :deployed, cc.deployedAt = CURRENT_TIMESTAMP WHERE cc.id = :id")
-    void updateDeployedStatus(@Param("id") UUID id, @Param("deployed") Boolean deployed);
+    // Update operations are handled by saving the entity; no JPQL update needed
 }

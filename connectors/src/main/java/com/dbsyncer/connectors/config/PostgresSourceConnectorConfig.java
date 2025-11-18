@@ -121,6 +121,11 @@ public class PostgresSourceConnectorConfig implements SourceConnectorConfig {
     private String sslKey;
     private String sslPassword;
 
+    // Optional transformation injection
+    @Builder.Default
+    private boolean enableTypeMappingTransform = false;
+    private String typeMappingSourceDb; // e.g. "postgresql"
+
     @Override
     public String getConnectorClass() {
         return CONNECTOR_CLASS;
@@ -257,6 +262,14 @@ public class PostgresSourceConnectorConfig implements SourceConnectorConfig {
         }
         if (sslPassword != null) {
             config.put("database.sslpassword", sslPassword);
+        }
+
+        // Optional SMT transform to normalize schema/types
+        if (enableTypeMappingTransform && typeMappingSourceDb != null && !typeMappingSourceDb.isBlank()) {
+            config.put("transforms", "applyTypeMapping");
+            config.put("transforms.applyTypeMapping.type",
+                    "com.dbsyncer.transformations.smt.ApplyTypeMapping");
+            config.put("transforms.applyTypeMapping.source.db", typeMappingSourceDb);
         }
 
         return config;

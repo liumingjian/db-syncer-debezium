@@ -37,6 +37,7 @@ public class TaskExecutionService {
     private final ConnectProperties connectProperties;
     private final TaskLogRepository taskLogRepository;
     private final AlertService alertService;
+    private final CheckpointService checkpointService;
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final String DEFAULT_METADATA_SERVICE_URL = "http://metadata-service:8080";
 
@@ -50,7 +51,8 @@ public class TaskExecutionService {
                                KafkaConnectClient connectClient,
                                ConnectProperties connectProperties,
                                TaskLogRepository taskLogRepository,
-                               AlertService alertService) {
+                               AlertService alertService,
+                               CheckpointService checkpointService) {
         this.taskRepository = taskRepository;
         this.configRepository = configRepository;
         this.taskService = taskService;
@@ -58,6 +60,7 @@ public class TaskExecutionService {
         this.connectProperties = connectProperties;
         this.taskLogRepository = taskLogRepository;
         this.alertService = alertService;
+        this.checkpointService = checkpointService;
     }
 
     @Transactional
@@ -116,6 +119,9 @@ public class TaskExecutionService {
             configRepository.findSourceConnector(taskId).ifPresent(c -> safePause(c.getConnectorName()));
             configRepository.findSinkConnector(taskId).ifPresent(c -> safePause(c.getConnectorName()));
 
+            // Create checkpoint before pausing
+            checkpointService.createCheckpoint(taskId, "Task paused by user");
+
             return taskService.updateTaskStatus(taskId, TaskStatus.PAUSED);
         } finally {
             MDC.remove("taskId");
@@ -152,6 +158,9 @@ public class TaskExecutionService {
             if (!task.canStop() && task.getStatus() != TaskStatus.STARTING) {
                 throw new InvalidTaskStateException("stop", task.getStatus());
             }
+
+            // Create checkpoint before stopping
+            checkpointService.createCheckpoint(taskId, "Task stopped by user");
 
             configRepository.findSourceConnector(taskId).ifPresent(c -> safeDelete(c));
             configRepository.findSinkConnector(taskId).ifPresent(c -> safeDelete(c));

@@ -35,6 +35,11 @@ public interface TableProgressRepository extends JpaRepository<TableProgress, UU
     List<TableProgress> findByTaskIdAndStatus(UUID taskId, ProgressStatus status);
 
     /**
+     * Find all tables with statuses in the given list for a task.
+     */
+    List<TableProgress> findByTaskIdAndStatusIn(UUID taskId, List<ProgressStatus> statuses);
+
+    /**
      * Count tables by status across all tasks.
      */
     long countByStatus(ProgressStatus status);

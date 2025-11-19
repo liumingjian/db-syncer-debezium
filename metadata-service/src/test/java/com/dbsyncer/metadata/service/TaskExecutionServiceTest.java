@@ -57,6 +57,9 @@ class TaskExecutionServiceTest {
     @Mock
     private AlertService alertService;
 
+    @Mock
+    private CheckpointService checkpointService;
+
     @InjectMocks
     private TaskExecutionService taskExecutionService;
 

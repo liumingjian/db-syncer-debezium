@@ -29,7 +29,7 @@ public class TaskLogController {
 
     @GetMapping
     public ResponseEntity<List<TaskLogResponse>> getTaskLogs(
-            @PathVariable UUID taskId,
+            @PathVariable("taskId") UUID taskId,
             @RequestParam(name = "level", required = false) String level,
             @RequestParam(name = "limit", required = false, defaultValue = "100") int limit) {
         log.debug("REST request to get logs for task {} with level={} and limit={}", taskId, level, limit);
@@ -49,4 +49,3 @@ public class TaskLogController {
         return ResponseEntity.ok(body);
     }
 }
-

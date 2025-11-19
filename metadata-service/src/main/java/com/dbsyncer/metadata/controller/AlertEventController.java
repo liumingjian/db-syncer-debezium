@@ -26,7 +26,7 @@ public class AlertEventController {
     private final AlertEventRepository alertEventRepository;
 
     @GetMapping
-    public ResponseEntity<List<AlertEvent>> getTaskAlerts(@PathVariable UUID taskId,
+    public ResponseEntity<List<AlertEvent>> getTaskAlerts(@PathVariable("taskId") UUID taskId,
                                                           @RequestParam(name = "limit", defaultValue = "100") int limit) {
         List<AlertEvent> events = alertEventRepository.findByTaskIdOrderByCreatedAtDesc(taskId);
         if (events.size() > limit) {
@@ -35,4 +35,3 @@ public class AlertEventController {
         return ResponseEntity.ok(events);
     }
 }
-

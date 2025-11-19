@@ -1,6 +1,7 @@
 package com.dbsyncer.metadata.controller;
 
 import com.dbsyncer.metadata.dto.ProgressResponse;
+import com.dbsyncer.metadata.dto.StreamingProgressUpdateRequest;
 import com.dbsyncer.metadata.entity.ProgressStatus;
 import com.dbsyncer.metadata.service.ProgressTrackingService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class ProgressController {
      * Get all progress entries for a task.
      */
     @GetMapping
-    public ResponseEntity<List<ProgressResponse>> getTaskProgress(@PathVariable UUID taskId) {
+    public ResponseEntity<List<ProgressResponse>> getTaskProgress(@PathVariable("taskId") UUID taskId) {
         log.debug("REST request to get progress for task: {}", taskId);
         List<ProgressResponse> progress = progressTrackingService.getTaskProgress(taskId);
         return ResponseEntity.ok(progress);
@@ -38,9 +39,9 @@ public class ProgressController {
      */
     @GetMapping("/table")
     public ResponseEntity<ProgressResponse> getTableProgress(
-            @PathVariable UUID taskId,
-            @RequestParam(required = false) String sourceSchema,
-            @RequestParam String sourceTable) {
+            @PathVariable("taskId") UUID taskId,
+            @RequestParam(name = "sourceSchema", required = false) String sourceSchema,
+            @RequestParam(name = "sourceTable") String sourceTable) {
         log.debug("REST request to get progress for table {}.{}", sourceSchema, sourceTable);
         ProgressResponse progress = progressTrackingService.getTableProgress(taskId, sourceSchema, sourceTable);
         return ResponseEntity.ok(progress);
@@ -50,7 +51,7 @@ public class ProgressController {
      * Get progress summary for a task.
      */
     @GetMapping("/summary")
-    public ResponseEntity<Map<ProgressStatus, Long>> getProgressSummary(@PathVariable UUID taskId) {
+    public ResponseEntity<Map<ProgressStatus, Long>> getProgressSummary(@PathVariable("taskId") UUID taskId) {
         log.debug("REST request to get progress summary for task: {}", taskId);
         Map<ProgressStatus, Long> summary = progressTrackingService.getProgressSummary(taskId);
         return ResponseEntity.ok(summary);
@@ -60,7 +61,7 @@ public class ProgressController {
      * Get total rows processed.
      */
     @GetMapping("/total-rows")
-    public ResponseEntity<Long> getTotalRowsProcessed(@PathVariable UUID taskId) {
+    public ResponseEntity<Long> getTotalRowsProcessed(@PathVariable("taskId") UUID taskId) {
         log.debug("REST request to get total rows processed for task: {}", taskId);
         Long totalRows = progressTrackingService.getTotalRowsProcessed(taskId);
         return ResponseEntity.ok(totalRows);
@@ -70,7 +71,7 @@ public class ProgressController {
      * Get average lag for streaming tables.
      */
     @GetMapping("/average-lag")
-    public ResponseEntity<Double> getAverageLag(@PathVariable UUID taskId) {
+    public ResponseEntity<Double> getAverageLag(@PathVariable("taskId") UUID taskId) {
         log.debug("REST request to get average lag for task: {}", taskId);
         Double averageLag = progressTrackingService.getAverageLag(taskId);
         return ResponseEntity.ok(averageLag);
@@ -80,7 +81,7 @@ public class ProgressController {
      * Get ETA (seconds) for task completion if it can be estimated, otherwise returns null.
      */
     @GetMapping("/eta")
-    public ResponseEntity<Long> getEtaSeconds(@PathVariable UUID taskId) {
+    public ResponseEntity<Long> getEtaSeconds(@PathVariable("taskId") UUID taskId) {
         log.debug("REST request to get ETA for task: {}", taskId);
         Long etaSeconds = progressTrackingService.estimateEtaSeconds(taskId);
         return ResponseEntity.ok(etaSeconds);
@@ -90,9 +91,41 @@ public class ProgressController {
      * Get tables with errors.
      */
     @GetMapping("/errors")
-    public ResponseEntity<List<ProgressResponse>> getTablesWithErrors(@PathVariable UUID taskId) {
+    public ResponseEntity<List<ProgressResponse>> getTablesWithErrors(@PathVariable("taskId") UUID taskId) {
         log.debug("REST request to get tables with errors for task: {}", taskId);
         List<ProgressResponse> tables = progressTrackingService.getTablesWithErrors(taskId);
         return ResponseEntity.ok(tables);
+    }
+
+    /**
+     * Increment streaming progress for a table.
+     * This endpoint is primarily intended to be called by internal components
+     * such as the ProgressReporting SMT running in Kafka Connect.
+     */
+    @PostMapping("/streaming")
+    public ResponseEntity<ProgressResponse> updateStreamingProgress(
+            @PathVariable("taskId") UUID taskId,
+            @RequestBody StreamingProgressUpdateRequest request) {
+        log.debug("Streaming progress update for task {} table {}.{}", taskId,
+                request.getSourceSchema(), request.getSourceTable());
+
+        Long delta = request.getProcessedDelta() != null ? request.getProcessedDelta() : 1L;
+        java.time.OffsetDateTime eventTime = null;
+        if (request.getEventTimestamp() != null) {
+            eventTime = java.time.OffsetDateTime.ofInstant(
+                    java.time.Instant.ofEpochMilli(request.getEventTimestamp()),
+                    java.time.ZoneOffset.UTC
+            );
+        }
+
+        ProgressResponse response = progressTrackingService.incrementStreamingProgress(
+                taskId,
+                request.getSourceSchema(),
+                request.getSourceTable(),
+                delta,
+                eventTime,
+                request.getLagMs()
+        );
+        return ResponseEntity.ok(response);
     }
 }

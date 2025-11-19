@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,6 +69,12 @@ public interface TableProgressRepository extends JpaRepository<TableProgress, UU
     Long getTotalRowsProcessedForAllTasks();
 
     /**
+     * Get total error count (failed records/events) across all tasks.
+     */
+    @Query("SELECT COALESCE(SUM(tp.errorCount), 0) FROM TableProgress tp")
+    Long getTotalErrorCountForAllTasks();
+
+    /**
      * Get total estimated rows for a task.
      */
     @Query("SELECT COALESCE(SUM(tp.estimatedRows), 0) FROM TableProgress tp WHERE tp.task.id = :taskId")
@@ -84,6 +91,12 @@ public interface TableProgressRepository extends JpaRepository<TableProgress, UU
      */
     @Query("SELECT COALESCE(AVG(tp.currentLagMs), 0) FROM TableProgress tp WHERE tp.status = 'STREAMING'")
     Double getGlobalAverageLag();
+
+    /**
+     * Get the most recent event timestamp across all tables and tasks.
+     */
+    @Query("SELECT MAX(tp.lastEventTimestamp) FROM TableProgress tp")
+    OffsetDateTime getLastEventTimestampForAllTasks();
 
     /**
      * Get progress summary for a task.

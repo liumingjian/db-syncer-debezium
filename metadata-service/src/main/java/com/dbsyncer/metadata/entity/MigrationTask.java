@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import org.hibernate.annotations.Type;
-import com.dbsyncer.metadata.entity.converter.DatabaseTypeConverter;
 import com.dbsyncer.metadata.entity.converter.TaskStatusConverter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -42,7 +41,7 @@ public class MigrationTask {
     // Source database configuration
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "source_type", nullable = false, columnDefinition = "database_type")
+    @Column(name = "source_type", nullable = false)
     private DatabaseType sourceType;
 
     @NotBlank
@@ -73,7 +72,7 @@ public class MigrationTask {
     // Target database configuration
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "target_type", nullable = false, columnDefinition = "database_type")
+    @Column(name = "target_type", nullable = false)
     private DatabaseType targetType;
 
     @NotBlank
@@ -102,12 +101,12 @@ public class MigrationTask {
     private Map<String, Object> targetProperties = new HashMap<>();
 
     // Table selection
-    @Type(ListArrayType.class)
-    @Column(name = "include_tables", columnDefinition = "text[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "include_tables")
     private List<String> includeTables;
 
-    @Type(ListArrayType.class)
-    @Column(name = "exclude_tables", columnDefinition = "text[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "exclude_tables")
     private List<String> excludeTables;
 
     // Task configuration
@@ -142,7 +141,7 @@ public class MigrationTask {
     // Task status
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "task_status")
+    @Column(name = "status", nullable = false)
     @Builder.Default
     private TaskStatus status = TaskStatus.CREATED;
 

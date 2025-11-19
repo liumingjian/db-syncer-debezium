@@ -230,6 +230,71 @@ public class ProgressTrackingService {
     }
 
     /**
+     * Increment streaming progress for a given table.
+     * This method is intended to be called by internal components (e.g. SMT in Kafka Connect)
+     * that periodically report aggregated processed record counts.
+     */
+    public ProgressResponse incrementStreamingProgress(UUID taskId,
+                                                       String sourceSchema,
+                                                       String sourceTable,
+                                                       long processedDelta,
+                                                       OffsetDateTime eventTime,
+                                                       Long lagMs) {
+        if (processedDelta <= 0) {
+            throw new IllegalArgumentException("processedDelta must be positive");
+        }
+
+        MigrationTask task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
+
+        TableProgress progress = progressRepository
+                .findByTaskIdAndSourceSchemaAndSourceTable(taskId, sourceSchema, sourceTable)
+                .orElseGet(() -> {
+                    log.info("Creating streaming progress entry for {}.{} in task {}", sourceSchema, sourceTable, taskId);
+                    TableProgress tp = TableProgress.builder()
+                            .task(task)
+                            .sourceSchema(sourceSchema)
+                            .sourceTable(sourceTable)
+                            .targetSchema(null)
+                            .targetTable(sourceTable)
+                            .status(ProgressStatus.STREAMING)
+                            .build();
+                    return progressRepository.save(tp);
+                });
+
+        Long current = progress.getStreamingEventsProcessed();
+        if (current == null) {
+            current = 0L;
+        }
+        progress.setStreamingEventsProcessed(current + processedDelta);
+
+        if (eventTime != null) {
+            progress.setLastEventTimestamp(eventTime);
+        }
+        if (lagMs != null) {
+            progress.setCurrentLagMs(lagMs);
+        }
+        if (progress.getStatus() == ProgressStatus.PENDING || progress.getStatus() == ProgressStatus.SNAPSHOTTING) {
+            progress.setStatus(ProgressStatus.STREAMING);
+        }
+
+        progress = progressRepository.save(progress);
+
+        // Optionally keep task-level processedRecords in sync for dashboards/CLI.
+        try {
+            Long totalProcessed = progressRepository.getTotalRowsProcessed(taskId);
+            if (totalProcessed != null) {
+                task.setProcessedRecords(totalProcessed);
+                taskRepository.save(task);
+            }
+        } catch (Exception e) {
+            log.debug("Failed to update task-level processedRecords for task {}: {}", taskId, e.getMessage());
+        }
+
+        return ProgressResponse.fromEntity(progress);
+    }
+
+    /**
      * Estimate ETA (in seconds) for a task based on snapshot progress.
      * Returns null when estimation is not reliable (e.g. missing estimates or too few processed rows).
      */

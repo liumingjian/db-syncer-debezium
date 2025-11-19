@@ -143,6 +143,7 @@ CREATE TABLE table_progress (
 CREATE INDEX idx_table_progress_task_id ON table_progress(task_id);
 CREATE INDEX idx_table_progress_status ON table_progress(status);
 
+-- Connector configurations
 CREATE TABLE connector_configs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     task_id UUID NOT NULL REFERENCES migration_tasks(id) ON DELETE CASCADE,
@@ -150,8 +151,7 @@ CREATE TABLE connector_configs (
     -- Connector identification
     connector_name VARCHAR(255) NOT NULL UNIQUE,
     connector_class VARCHAR(500) NOT NULL,
-    -- Store connector type as plain VARCHAR for simpler JDBC mappings
-    connector_type VARCHAR(50) NOT NULL,
+    connector_type connector_type NOT NULL,
 
     -- Configuration
     config JSONB NOT NULL,

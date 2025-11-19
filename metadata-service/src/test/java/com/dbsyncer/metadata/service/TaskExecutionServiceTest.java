@@ -54,8 +54,15 @@ class TaskExecutionServiceTest {
     @Mock
     private TaskLogRepository taskLogRepository;
 
+    @Mock
+    private AlertService alertService;
+
     @InjectMocks
     private TaskExecutionService taskExecutionService;
+
+    @org.mockito.Spy
+    @InjectMocks
+    private TaskExecutionService taskExecutionServiceSpy;
 
     private MigrationTask task;
     private UUID taskId;
@@ -86,6 +93,15 @@ class TaskExecutionServiceTest {
 
         when(connectProperties.getWaitTimeoutMs()).thenReturn(2000L);
         when(connectProperties.getPollIntervalMs()).thenReturn(10L);
+
+        // Inject spy as self to enable REQUIRES_NEW transaction propagation testing
+        try {
+            java.lang.reflect.Field selfField = TaskExecutionService.class.getDeclaredField("self");
+            selfField.setAccessible(true);
+            selfField.set(taskExecutionService, taskExecutionServiceSpy);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to inject self spy", e);
+        }
     }
 
     @Test

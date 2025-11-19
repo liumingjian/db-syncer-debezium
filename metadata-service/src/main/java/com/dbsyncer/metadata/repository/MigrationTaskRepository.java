@@ -5,7 +5,6 @@ import com.dbsyncer.metadata.entity.TaskStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
@@ -131,12 +130,26 @@ public interface MigrationTaskRepository extends JpaRepository<MigrationTask, UU
     }
 
     /**
-     * Delete tasks older than specified date that are in terminal status.
+     * Find tasks in specific statuses updated before the given threshold.
      */
-    @Modifying
-    int deleteByStatusInAndUpdatedAtBefore(java.util.List<TaskStatus> statuses, OffsetDateTime threshold);
+    java.util.List<MigrationTask> findByStatusInAndUpdatedAtBefore(java.util.List<TaskStatus> statuses,
+                                                                   OffsetDateTime threshold);
 
+    /**
+     * Delete tasks older than specified date that are in terminal status.
+     * Implemented as a default method to avoid complex derived delete queries.
+     */
     default int deleteOldCompletedTasks(OffsetDateTime threshold) {
-        return deleteByStatusInAndUpdatedAtBefore(java.util.Arrays.asList(TaskStatus.COMPLETED, TaskStatus.STOPPED, TaskStatus.FAILED), threshold);
+        java.util.List<TaskStatus> terminal = java.util.Arrays.asList(
+                TaskStatus.COMPLETED,
+                TaskStatus.STOPPED,
+                TaskStatus.FAILED
+        );
+        java.util.List<MigrationTask> tasks = findByStatusInAndUpdatedAtBefore(terminal, threshold);
+        int count = tasks.size();
+        if (count > 0) {
+            deleteAll(tasks);
+        }
+        return count;
     }
 }

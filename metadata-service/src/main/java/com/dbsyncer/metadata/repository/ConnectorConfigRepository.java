@@ -72,14 +72,18 @@ public interface ConnectorConfigRepository extends JpaRepository<ConnectorConfig
     Optional<ConnectorConfig> findFirstByTaskIdAndConnectorType(UUID taskId, ConnectorType connectorType);
 
     default Optional<ConnectorConfig> findSourceConnector(UUID taskId) {
-        return findFirstByTaskIdAndConnectorType(taskId, ConnectorType.SOURCE);
+        return findByTaskId(taskId).stream()
+                .filter(ConnectorConfig::isSourceConnector)
+                .findFirst();
     }
 
     /**
      * Find sink connector for a task.
      */
     default Optional<ConnectorConfig> findSinkConnector(UUID taskId) {
-        return findFirstByTaskIdAndConnectorType(taskId, ConnectorType.SINK);
+        return findByTaskId(taskId).stream()
+                .filter(ConnectorConfig::isSinkConnector)
+                .findFirst();
     }
 
     /**

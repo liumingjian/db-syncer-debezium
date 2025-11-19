@@ -230,26 +230,44 @@
 
 ### 5.1 关键监控指标
 
-建议至少监控以下指标（按任务维度）：
+当前 metadata-service 已通过 Micrometer 暴露 Prometheus 指标，可在 `/actuator/prometheus` 中抓取。建议重点关注：
 
-- 任务状态：
-  - `dbsyncer_task_state{task="..."}`
-- 已处理记录数：
-  - `dbsyncer_task_processed_records_total{task="..."}`
-- 失败记录数：
-  - `dbsyncer_task_failed_records_total{task="..."}`
-- 迁移延迟（lag）：
-  - `dbsyncer_task_lag_seconds{task="..."}`
-- 最后事件时间戳：
-  - `dbsyncer_task_last_event_timestamp{task="..."}`
+- 任务状态（按状态聚合）：
+  - `dbsyncer_task_state{status="RUNNING"}`：处于 RUNNING 状态的任务数量  
+  - `dbsyncer_task_state{status="FAILED"}`：处于 FAILED 状态的任务数量
+- 已处理记录数（所有任务聚合）：
+  - `dbsyncer_task_processed_records_total`
+- 失败记录数（所有任务聚合，基于表级 errorCount）：
+  - `dbsyncer_task_failed_records_total`
+- 迁移延迟（平均 lag，秒）：
+  - `dbsyncer_task_lag_seconds`
+- 最后事件时间戳（最近一条事件时间，Unix 秒）：
+  - `dbsyncer_task_last_event_timestamp`
 
-若还未完全实现上述指标，可临时使用：
+后续可以按任务维度（taskId/taskName）进一步拆分时间序列；在此之前，若需要更细粒度监控，可临时使用：
 
 - Kafka Connect 的 Connector/Task 状态；
 - 源/目标库的表行数对比；
 - 自定义日志提取的统计信息。
 
-### 5.2 告警规则示例
+### 5.2 MVP 级别 E2E 验证（必跑用例）
+
+在计划将某条 MySQL → PostgreSQL 迁移链路用于生产前，建议在具备 Docker 的 CI 或专用验证环境中，至少确保以下命令全部成功：
+
+```bash
+# 在项目根目录
+mvn -pl e2e-tests verify
+```
+
+该命令将运行 `e2e-tests` 模块中的 `MysqlToPostgresE2EIT`：
+
+- 启动 MySQL 源库、PostgreSQL 元数据库与目标库、Kafka、Kafka Connect（基于 Testcontainers）；  
+- 启动 metadata-service，创建一条 MySQL → PostgreSQL 任务并启动；  
+- 向源库 `customers` 表写入测试数据，并轮询目标库，直到 `customers` 表至少出现两条对应记录为止。  
+
+只有当上述 E2E 流程稳定通过时，才建议将该版本纳入生产试点范围。
+
+### 5.3 告警规则示例
 
 基于 Prometheus（伪代码）：
 
@@ -412,4 +430,3 @@
 ---
 
 > 本文档为草稿版，随着功能完善与实际生产经验的积累，建议持续更新。所有运维决策应结合业务风险评估和 DBA 建议综合制定。 
-

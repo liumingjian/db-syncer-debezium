@@ -44,11 +44,11 @@
 **描述**: 设置 GitHub Actions 自动化构建和测试流程
 
 **验收标准**:
-- [ ] 创建 .github/workflows/build.yml
-- [ ] 配置自动编译和单元测试
-- [ ] 配置代码质量检查 (Checkstyle, SpotBugs)
-- [ ] 配置测试覆盖率报告
-- [ ] PR 合并前自动运行检查
+- [x] 创建 .github/workflows/build.yml
+- [x] 配置自动编译和单元测试
+- [x] 配置代码质量检查 (Checkstyle, SpotBugs)
+- [x] 配置测试覆盖率报告
+- [x] PR 合并前自动运行检查
 
 ### Issue #4: 项目文档编写
 **标签**: `documentation`, `phase-1`
@@ -58,29 +58,29 @@
 - [x] README.md 完成
 - [x] CONTRIBUTING.md 完成
 - [x] LICENSE 文件添加
-- [ ] docs/ARCHITECTURE.md 架构文档
-- [ ] docs/DEVELOPMENT.md 开发指南
+- [x] docs/ARCHITECTURE.md 架构文档
+- [x] docs/DEVELOPMENT.md 开发指南
 
 ### Issue #5: 代码规范和格式化配置
 **标签**: `task`, `phase-1`
 **描述**: 配置统一的代码格式和检查工具
 
 **验收标准**:
-- [ ] 配置 Checkstyle (Google Java Style)
-- [ ] 配置 SpotBugs
-- [ ] 配置 Maven Formatter Plugin
-- [ ] 添加 EditorConfig 文件
-- [ ] 文档说明如何使用
+- [x] 配置 Checkstyle (Google Java Style)
+- [x] 配置 SpotBugs
+- [x] 配置 Maven Formatter Plugin
+- [x] 添加 EditorConfig 文件
+- [x] 文档说明如何使用
 
 ### Issue #6: 基础日志框架配置
 **标签**: `task`, `phase-1`
 **描述**: 配置 SLF4J + Logback 日志框架
 
 **验收标准**:
-- [ ] 各模块添加 logback.xml 配置
-- [ ] 配置日志级别和输出格式
-- [ ] 配置文件滚动策略
-- [ ] 区分开发和生产环境配置
+- [x] 各模块添加 logback.xml 配置
+- [x] 配置日志级别和输出格式
+- [x] 配置文件滚动策略
+- [x] 区分开发和生产环境配置
 
 ---
 
@@ -91,11 +91,11 @@
 **描述**: 设计并实现元数据数据库 Schema
 
 **验收标准**:
-- [ ] 设计 migration_tasks 表结构
-- [ ] 设计 table_progress 表结构
-- [ ] 设计 debezium_offsets 表结构
-- [ ] 设计 schema_history 表结构
-- [ ] 设计 connector_configs 表结构
+- [x] 设计 migration_tasks 表结构
+- [x] 设计 table_progress 表结构
+- [x] 设计 debezium_offsets 表结构
+- [x] 设计 schema_history 表结构
+- [x] 设计 connector_configs 表结构
 - [ ] ER 图文档
 
 ### Issue #8: Flyway 数据库迁移配置
@@ -103,32 +103,32 @@
 **描述**: 集成 Flyway 实现数据库版本管理
 
 **验收标准**:
-- [ ] 添加 Flyway 依赖
-- [ ] 创建初始化 SQL 脚本 (V1__initial_schema.sql)
-- [ ] 配置 Flyway 自动执行
-- [ ] 测试迁移脚本执行
+- [x] 添加 Flyway 依赖
+- [x] 创建初始化 SQL 脚本 (V1__initial_schema.sql)
+- [x] 配置 Flyway 自动执行
+- [x] 测试迁移脚本执行
 
 ### Issue #9: JPA 实体类定义
 **标签**: `task`, `phase-2`
 **描述**: 定义所有元数据表对应的 JPA 实体类
 
 **验收标准**:
-- [ ] MigrationTask 实体
-- [ ] TableProgress 实体
+- [x] MigrationTask 实体
+- [x] TableProgress 实体
 - [ ] DebeziumOffset 实体
 - [ ] SchemaHistory 实体
-- [ ] ConnectorConfig 实体
-- [ ] 添加必要的关联关系和索引
+- [x] ConnectorConfig 实体
+- [x] 添加必要的关联关系和索引
 
 ### Issue #10: Repository 层实现
 **标签**: `task`, `phase-2`
 **描述**: 实现 Spring Data JPA Repository 接口
 
 **验收标准**:
-- [ ] TaskRepository 接口
-- [ ] TableProgressRepository 接口
+- [x] TaskRepository 接口
+- [x] TableProgressRepository 接口
 - [ ] DebeziumOffsetRepository 接口
-- [ ] 自定义查询方法定义
+- [x] 自定义查询方法定义
 - [ ] Repository 单元测试
 
 ### Issue #11: Service 层实现
@@ -136,20 +136,20 @@
 **描述**: 实现元数据管理的业务逻辑层
 
 **验收标准**:
-- [ ] TaskService 实现(CRUD 操作)
-- [ ] ProgressTrackingService 实现
+- [x] TaskService 实现(CRUD 操作)
+- [x] ProgressTrackingService 实现
 - [ ] OffsetManagementService 实现
-- [ ] 事务管理配置
-- [ ] Service 层单元测试
+- [x] 事务管理配置
+- [x] Service 层单元测试
 
 ### Issue #12: REST API 接口实现
 **标签**: `task`, `phase-2`
 **描述**: 实现元数据管理的 REST API
 
 **验收标准**:
-- [ ] TaskController (创建/查询/更新/删除任务)
-- [ ] ProgressController (查询进度)
-- [ ] 统一异常处理
+- [x] TaskController (创建/查询/更新/删除任务)
+- [x] ProgressController (查询进度)
+- [x] 统一异常处理
 - [ ] API 文档 (Swagger/OpenAPI)
 - [ ] 集成测试
 
@@ -158,20 +158,20 @@
 **描述**: 实现配置文件管理和环境配置
 
 **验收标准**:
-- [ ] application.yml 基础配置
-- [ ] application-dev.yml 开发环境配置
-- [ ] application-prod.yml 生产环境配置
-- [ ] 数据库连接池配置 (HikariCP)
-- [ ] 敏感信息外部化
+- [x] application.yml 基础配置
+- [x] application-dev.yml 开发环境配置
+- [x] application-prod.yml 生产环境配置
+- [x] 数据库连接池配置 (HikariCP)
+- [x] 敏感信息外部化
 
 ### Issue #14: 元数据服务集成测试
 **标签**: `test`, `phase-2`
 **描述**: 使用 Testcontainers 实现集成测试
 
 **验收标准**:
-- [ ] Testcontainers PostgreSQL 配置
+- [x] Testcontainers PostgreSQL 配置
 - [ ] Repository 集成测试
-- [ ] Service 层集成测试
+- [x] Service 层集成测试
 - [ ] REST API 集成测试
 - [ ] 测试覆盖率 > 80%
 
@@ -184,53 +184,53 @@
 **描述**: 集成 Picocli CLI 框架
 
 **验收标准**:
-- [ ] Picocli 依赖配置
-- [ ] 主命令类 DbSyncerCommand 创建
+- [x] Picocli 依赖配置
+- [x] 主命令类 DbSyncerCommand 创建
 - [ ] 全局选项配置 (--verbose, --config)
-- [ ] 版本信息和帮助文档
-- [ ] Spring Boot 集成
+- [x] 版本信息和帮助文档
+- [x] Spring Boot 集成
 
 ### Issue #16: Task 管理命令实现
 **标签**: `task`, `phase-3`
 **描述**: 实现任务管理相关的 CLI 命令
 
 **验收标准**:
-- [ ] `task create` 创建任务
-- [ ] `task list` 列出任务
-- [ ] `task show <task-id>` 查看任务详情
-- [ ] `task delete <task-id>` 删除任务
-- [ ] 参数验证和错误处理
+- [x] `task create` 创建任务
+- [x] `task list` 列出任务
+- [x] `task show <task-id>` 查看任务详情
+- [x] `task delete <task-id>` 删除任务
+- [x] 参数验证和错误处理
 
 ### Issue #17: Task 执行控制命令实现
 **标签**: `task`, `phase-3`
 **描述**: 实现任务执行控制命令
 
 **验收标准**:
-- [ ] `task start <task-id>` 启动任务
-- [ ] `task stop <task-id>` 停止任务
-- [ ] `task pause <task-id>` 暂停任务
-- [ ] `task resume <task-id>` 恢复任务
-- [ ] 状态验证逻辑
+- [x] `task start <task-id>` 启动任务
+- [x] `task stop <task-id>` 停止任务
+- [x] `task pause <task-id>` 暂停任务
+- [x] `task resume <task-id>` 恢复任务
+- [x] 状态验证逻辑
 
 ### Issue #18: 监控和日志命令实现
 **标签**: `task`, `phase-3`
 **描述**: 实现任务监控和日志查看命令
 
 **验收标准**:
-- [ ] `task status <task-id>` 查看任务状态
-- [ ] `task logs <task-id>` 查看任务日志
-- [ ] `monitor <task-id>` 实时监控任务进度
-- [ ] 终端 UI 进度条实现
+- [x] `task status <task-id>` 查看任务状态
+- [x] `task logs <task-id>` 查看任务日志
+- [x] `monitor <task-id>` 实时监控任务进度
+- [x] 终端 UI 进度条实现
 
 ### Issue #19: 配置管理命令实现
 **标签**: `task`, `phase-3`
 **描述**: 实现配置管理命令
 
 **验收标准**:
-- [ ] `config show` 显示当前配置
-- [ ] `config set <key> <value>` 设置配置项
+- [x] `config show` 显示当前配置
+- [x] `config set <key> <value>` 设置配置项
 - [ ] `config validate` 验证配置
-- [ ] 配置文件读写逻辑
+- [x] 配置文件读写逻辑
 
 ### Issue #20: CLI 与元数据服务集成
 **标签**: `task`, `phase-3`
@@ -247,8 +247,8 @@
 **描述**: 优化 CLI 输出格式和用户体验
 
 **验收标准**:
-- [ ] 表格输出格式 (ASCII Table)
-- [ ] JSON 输出选项 (--output json)
+- [x] 表格输出格式 (ASCII Table)
+- [x] JSON 输出选项 (--output json)
 - [ ] ANSI 颜色支持
 - [ ] 进度条和 Spinner 动画
 - [ ] 优雅降级 (非 TTY 环境)
@@ -262,75 +262,75 @@
 **描述**: 实现 Kafka Connect REST API 客户端
 
 **验收标准**:
-- [ ] 连接器部署 API
-- [ ] 连接器删除 API
-- [ ] 连接器状态查询 API
-- [ ] 连接器暂停/恢复 API
-- [ ] 错误处理
+- [x] 连接器部署 API
+- [x] 连接器删除 API
+- [x] 连接器状态查询 API
+- [x] 连接器暂停/恢复 API
+- [x] 错误处理
 
 ### Issue #23: MySQL Source Connector 配置生成
 **标签**: `task`, `phase-4`, `mysql`
 **描述**: 实现 MySQL Source Connector 配置生成器
 
 **验收标准**:
-- [ ] 连接参数配置
-- [ ] Binlog 位置配置
-- [ ] 表白名单/黑名单配置
-- [ ] Snapshot 模式配置
-- [ ] 配置验证逻辑
+- [x] 连接参数配置
+- [x] Binlog 位置配置
+- [x] 表白名单/黑名单配置
+- [x] Snapshot 模式配置
+- [x] 配置验证逻辑
 
 ### Issue #24: Oracle Source Connector 配置生成
 **标签**: `task`, `phase-4`, `oracle`
 **描述**: 实现 Oracle Source Connector 配置生成器
 
 **验收标准**:
-- [ ] LogMiner 配置
-- [ ] SCN 位置配置
-- [ ] 表选择配置
-- [ ] Snapshot 配置
-- [ ] 权限验证
+- [x] LogMiner 配置
+- [x] SCN 位置配置
+- [x] 表选择配置
+- [x] Snapshot 配置
+- [x] 权限验证
 
 ### Issue #25: PostgreSQL Source Connector 配置生成
 **标签**: `task`, `phase-4`, `postgresql`
 **描述**: 实现 PostgreSQL Source Connector 配置生成器
 
 **验收标准**:
-- [ ] Logical Decoding 配置
-- [ ] Publication/Replication Slot 配置
-- [ ] 表选择配置
-- [ ] Snapshot 配置
+- [x] Logical Decoding 配置
+- [x] Publication/Replication Slot 配置
+- [x] 表选择配置
+- [x] Snapshot 配置
 
 ### Issue #26: Connector 生命周期管理
 **标签**: `task`, `phase-4`
 **描述**: 实现 Connector 的完整生命周期管理
 
 **验收标准**:
-- [ ] Connector 部署逻辑
-- [ ] Connector 删除逻辑
-- [ ] Connector 状态监控
-- [ ] Connector 错误处理和重启
-- [ ] Connector 配置更新
+- [x] Connector 部署逻辑
+- [x] Connector 删除逻辑
+- [x] Connector 状态监控
+- [x] Connector 错误处理和重启
+- [x] Connector 配置更新
 
 ### Issue #27: Offset 存储集成
 **标签**: `task`, `phase-4`
 **描述**: 将 Debezium Offset 存储到 PostgreSQL
 
 **验收标准**:
-- [ ] 自定义 OffsetBackingStore 实现
-- [ ] PostgreSQL 存储逻辑
-- [ ] Offset 读取/写入
-- [ ] 定期 Flush 机制
-- [ ] 并发控制
+- [x] 自定义 OffsetBackingStore 实现
+- [x] PostgreSQL 存储逻辑
+- [x] Offset 读取/写入
+- [x] 定期 Flush 机制
+- [x] 并发控制
 
 ### Issue #28: Schema History 存储集成
 **标签**: `task`, `phase-4`
 **描述**: 将 Schema History 存储到 PostgreSQL
 
 **验收标准**:
-- [ ] 自定义 SchemaHistory 实现
-- [ ] Schema 变更记录
-- [ ] Schema 查询逻辑
-- [ ] 版本管理
+- [x] 自定义 SchemaHistory 实现
+- [x] Schema 变更记录
+- [x] Schema 查询逻辑
+- [x] 版本管理
 
 ### Issue #29: Connector 集成测试
 **标签**: `test`, `phase-4`
@@ -352,34 +352,34 @@
 **描述**: 设计可扩展的类型映射框架
 
 **验收标准**:
-- [ ] TypeMapper 接口定义
-- [ ] TypeMappingRegistry 注册表
-- [ ] 类型转换器接口
-- [ ] 映射规则配置格式
+- [x] TypeMapper 接口定义
+- [x] TypeMappingRegistry 注册表
+- [x] 类型转换器接口
+- [x] 映射规则配置格式
 
 ### Issue #31: MySQL → PostgreSQL 类型映射
 **标签**: `task`, `phase-5`, `mysql`
 **描述**: 实现完整的 MySQL 到 PostgreSQL 类型映射
 
 **验收标准**:
-- [ ] 数值类型映射 (INT, BIGINT, DECIMAL, etc.)
-- [ ] 字符串类型映射 (VARCHAR, TEXT, CHAR, etc.)
-- [ ] 日期时间类型映射 (DATETIME, TIMESTAMP, DATE, etc.)
-- [ ] 二进制类型映射 (BLOB, BINARY, etc.)
-- [ ] JSON 类型映射
-- [ ] 单元测试覆盖
+- [x] 数值类型映射 (INT, BIGINT, DECIMAL, etc.)
+- [x] 字符串类型映射 (VARCHAR, TEXT, CHAR, etc.)
+- [x] 日期时间类型映射 (DATETIME, TIMESTAMP, DATE, etc.)
+- [x] 二进制类型映射 (BLOB, BINARY, etc.)
+- [x] JSON 类型映射
+- [x] 单元测试覆盖
 
 ### Issue #32: Oracle → PostgreSQL 类型映射
 **标签**: `task`, `phase-5`, `oracle`
 **描述**: 实现完整的 Oracle 到 PostgreSQL 类型映射
 
 **验收标准**:
-- [ ] NUMBER 类型映射
-- [ ] VARCHAR2/CHAR 类型映射
-- [ ] DATE/TIMESTAMP 类型映射
-- [ ] CLOB/BLOB 类型映射
-- [ ] RAW 类型映射
-- [ ] 单元测试覆盖
+- [x] NUMBER 类型映射
+- [x] VARCHAR2/CHAR 类型映射
+- [x] DATE/TIMESTAMP 类型映射
+- [x] CLOB/BLOB 类型映射
+- [x] RAW 类型映射
+- [x] 单元测试覆盖
 
 ### Issue #33: 自定义 SMT (Single Message Transform)
 **标签**: `task`, `phase-5`
@@ -397,11 +397,11 @@
 **描述**: 实现 Schema 定义的转换逻辑
 
 **验收标准**:
-- [ ] Debezium Schema 解析
-- [ ] 目标 Schema 生成
-- [ ] DDL 语句生成
-- [ ] Schema 差异检测
-- [ ] 单元测试
+- [x] Debezium Schema 解析
+- [x] 目标 Schema 生成
+- [x] DDL 语句生成
+- [x] Schema 差异检测
+- [x] 单元测试
 
 ### Issue #35: 数据转换集成测试
 **标签**: `test`, `phase-5`
@@ -466,31 +466,31 @@
 
 **验收标准**:
 - [ ] Connector 指标采集
-- [ ] 表级进度计算
-- [ ] 记录数统计
-- [ ] ETA 估算
-- [ ] 数据库持久化
+- [x] 表级进度计算
+- [x] 记录数统计
+- [x] ETA 估算
+- [x] 数据库持久化
 
 ### Issue #41: 错误处理和重试机制
 **标签**: `task`, `phase-6`
 **描述**: 实现健壮的错误处理和重试逻辑
 
 **验收标准**:
-- [ ] 异常分类(可重试/不可重试)
-- [ ] 指数退避重试
+- [x] 异常分类(可重试/不可重试)
+- [x] 指数退避重试
 - [ ] 失败记录持久化
 - [ ] Dead Letter Queue
-- [ ] 告警通知接口
+- [x] 告警通知接口
 
 ### Issue #42: 增量快照支持
 **标签**: `task`, `phase-6`
 **描述**: 支持 Debezium 增量快照功能
 
 **验收标准**:
-- [ ] 增量快照配置
-- [ ] 分块大小配置
+- [x] 增量快照配置
+- [x] 分块大小配置
 - [ ] 并行度配置
-- [ ] 进度跟踪
+- [x] 进度跟踪
 - [ ] 断点续传
 
 ### Issue #43: 多表并行迁移
@@ -499,9 +499,9 @@
 
 **验收标准**:
 - [ ] 表分组逻辑
-- [ ] 并行度控制
+- [x] 并行度控制
 - [ ] 资源限制
-- [ ] 进度汇总
+- [x] 进度汇总
 - [ ] 部分失败处理
 
 ### Issue #44: 任务执行集成测试
@@ -534,9 +534,9 @@
 **描述**: 集成 Prometheus 监控
 
 **验收标准**:
-- [ ] Micrometer 依赖
-- [ ] 自定义指标定义
-- [ ] Prometheus Endpoint 暴露
+- [x] Micrometer 依赖
+- [x] 自定义指标定义
+- [x] Prometheus Endpoint 暴露
 - [ ] Grafana Dashboard 定义
 
 ### Issue #47: 健康检查接口
@@ -544,10 +544,10 @@
 **描述**: 实现健康检查和就绪检查
 
 **验收标准**:
-- [ ] /health endpoint
-- [ ] /ready endpoint
-- [ ] 数据库连接检查
-- [ ] Kafka 连接检查
+- [x] /health endpoint
+- [x] /ready endpoint
+- [x] 数据库连接检查
+- [x] Kafka 连接检查
 - [ ] Connector 状态检查
 
 ### Issue #48: 任务监控 Dashboard
@@ -555,10 +555,10 @@
 **描述**: 实现 CLI 任务监控终端 UI
 
 **验收标准**:
-- [ ] 实时进度条
-- [ ] 多表进度显示
-- [ ] 速率统计
-- [ ] ETA 显示
+- [x] 实时进度条
+- [x] 多表进度显示
+- [x] 速率统计
+- [x] ETA 显示
 - [ ] 终端 UI 库选择 (Lanterna/Jexer)
 
 ### Issue #49: 日志增强
@@ -566,10 +566,10 @@
 **描述**: 增强日志记录和查询功能
 
 **验收标准**:
-- [ ] 结构化日志 (JSON)
-- [ ] 任务关联日志
+- [x] 结构化日志 (JSON)
+- [x] 任务关联日志
 - [ ] 日志级别动态调整
-- [ ] 日志查询 API
+- [x] 日志查询 API
 - [ ] 日志聚合配置 (ELK/Loki)
 
 ### Issue #50: 告警机制
@@ -577,10 +577,10 @@
 **描述**: 实现告警通知机制
 
 **验收标准**:
-- [ ] 告警规则定义
+- [x] 告警规则定义
 - [ ] 邮件通知实现
 - [ ] Webhook 通知
-- [ ] 告警历史记录
+- [x] 告警历史记录
 - [ ] 告警配置界面
 
 ---

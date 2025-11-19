@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 /**
  * Integration test for JdbcOffsetBackingStore using Testcontainers.
  */
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 class JdbcOffsetBackingStoreIntegrationTest {
 
     @Container

@@ -257,6 +257,7 @@
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
+                        <parameters>true</parameters>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>
@@ -398,6 +399,11 @@
         </pluginManagement>
 
         <plugins>
+            <!-- Apply Compiler settings (including -parameters) to all modules -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
             <!-- Apply JaCoCo to all modules -->
             <plugin>
                 <groupId>org.jacoco</groupId>

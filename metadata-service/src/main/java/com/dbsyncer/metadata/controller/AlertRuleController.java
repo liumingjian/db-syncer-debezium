@@ -51,7 +51,7 @@ public class AlertRuleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AlertRuleResponse> updateRule(@PathVariable UUID id,
+    public ResponseEntity<AlertRuleResponse> updateRule(@PathVariable("id") UUID id,
                                                         @RequestBody AlertRuleRequest request) {
         AlertRule rule = alertRuleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Alert rule not found: " + id));
@@ -83,11 +83,10 @@ public class AlertRuleController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRule(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteRule(@PathVariable("id") UUID id) {
         if (alertRuleRepository.existsById(id)) {
             alertRuleRepository.deleteById(id);
         }
         return ResponseEntity.noContent().build();
     }
 }
-

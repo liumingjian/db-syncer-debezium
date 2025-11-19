@@ -12,10 +12,11 @@ import com.dbsyncer.metadata.exception.TaskNotFoundException;
 import com.dbsyncer.metadata.repository.ConnectorConfigRepository;
 import com.dbsyncer.metadata.repository.MigrationTaskRepository;
 import com.dbsyncer.metadata.repository.TaskLogRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.MDC;
 
@@ -26,7 +27,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class TaskExecutionService {
 
@@ -38,6 +38,27 @@ public class TaskExecutionService {
     private final TaskLogRepository taskLogRepository;
     private final AlertService alertService;
     private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final String DEFAULT_METADATA_SERVICE_URL = "http://metadata-service:8080";
+
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private TaskExecutionService self;
+
+    public TaskExecutionService(MigrationTaskRepository taskRepository,
+                               ConnectorConfigRepository configRepository,
+                               TaskService taskService,
+                               KafkaConnectClient connectClient,
+                               ConnectProperties connectProperties,
+                               TaskLogRepository taskLogRepository,
+                               AlertService alertService) {
+        this.taskRepository = taskRepository;
+        this.configRepository = configRepository;
+        this.taskService = taskService;
+        this.connectClient = connectClient;
+        this.connectProperties = connectProperties;
+        this.taskLogRepository = taskLogRepository;
+        this.alertService = alertService;
+    }
 
     @Transactional
     public TaskResponse startTask(UUID taskId) {
@@ -69,7 +90,11 @@ public class TaskExecutionService {
                 taskRepository.save(task);
                 return TaskResponse.fromEntity(task);
             } catch (Exception e) {
-                classifyAndHandleStartFailure(taskId, e);
+                // Use self-reference to ensure REQUIRES_NEW transaction propagation works
+                // This ensures error state is persisted even when outer transaction rolls back
+                if (self != null) {
+                    self.classifyAndHandleStartFailure(taskId, e);
+                }
                 throw e;
             }
         } finally {
@@ -189,11 +214,15 @@ public class TaskExecutionService {
         return Math.min(backoff, max);
     }
 
-    private void classifyAndHandleStartFailure(UUID taskId, Exception e) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void classifyAndHandleStartFailure(UUID taskId, Exception e) {
         boolean retryable = isRetryable(e);
         String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
         log.error("Failed to start task {}: {} (retryable={})", taskId, message, retryable, e);
+
+        // Update task status to FAILED
         taskService.updateTaskError(taskId, message);
+
         // Persist execution log for troubleshooting and monitoring
         taskRepository.findById(taskId).ifPresent(task -> {
             Map<String, Object> context = new HashMap<>();
@@ -208,10 +237,12 @@ public class TaskExecutionService {
                     .context(context)
                     .sourceComponent("TaskExecutionService")
                     .build();
-            TaskLog saved = taskLogRepository.save(logEntry);
+            taskLogRepository.save(logEntry);
+
             // Trigger alerts based on rules
             alertService.onTaskFailure(taskId, message, retryable);
         });
+
         // TODO: persist failed records / DLQ routing once available
         // TODO: integrate with alerting mechanism (Phase 7)
     }
@@ -336,7 +367,14 @@ public class TaskExecutionService {
                 config.put("database.server.id", String.valueOf(serverId));
                 // Use file-based schema history inside the Connect container for E2E demo
                 config.put("schema.history.internal", "io.debezium.storage.file.history.FileSchemaHistory");
-                config.put("schema.history.internal.file.filename", "/kafka/connect/custom-connectors/schema-history/" + task.getTaskName() + ".dat");
+                String historyDir = connectProperties.getSchemaHistoryDir();
+                if (historyDir == null || historyDir.isBlank()) {
+                    historyDir = "/kafka/connect/custom-connectors/schema-history";
+                }
+                if (!historyDir.endsWith("/")) {
+                    historyDir = historyDir + "/";
+                }
+                config.put("schema.history.internal.file.filename", historyDir + task.getTaskName() + ".dat");
                 config.put("snapshot.mode", task.getSnapshotMode());
                 if (Boolean.TRUE.equals(task.getIncrementalSnapshot())) {
                     config.put("snapshot.mode", "initial_only");
@@ -429,10 +467,26 @@ public class TaskExecutionService {
 
         config.put("batch.size", String.valueOf(task.getBatchSize()));
 
-        // Unwrap Debezium envelope to flat records, then route topic to plain table name
-        config.put("transforms", "unwrap,route");
+        // Unwrap Debezium envelope to flat records, optionally report progress,
+        // then route topic to plain table name.
+        boolean enableProgressSmt = connectProperties.isEnableProgressSmt();
+        if (enableProgressSmt) {
+            config.put("transforms", "unwrap,progress,route");
+        } else {
+            config.put("transforms", "unwrap,route");
+        }
+
         config.put("transforms.unwrap.type", "io.debezium.transforms.ExtractNewRecordState");
         config.put("transforms.unwrap.drop.tombstones", "true");
+
+        if (enableProgressSmt) {
+            config.put("transforms.progress.type", "com.dbsyncer.transformations.smt.ProgressReporting");
+            config.put("transforms.progress.task.id", task.getId().toString());
+            config.put("transforms.progress.metadata.service.url", resolveMetadataServiceUrl());
+            config.put("transforms.progress.batch.size", "100");
+            config.put("transforms.progress.flush.interval.ms", String.valueOf(connectProperties.getPollIntervalMs() * 2));
+        }
+
         config.put("transforms.route.type", "org.apache.kafka.connect.transforms.RegexRouter");
         config.put("transforms.route.regex", "^" + task.getTaskName().replace(".", "\\.") + "\\." + task.getSourceDatabase().replace(".", "\\.") + "\\.(.*)$");
         config.put("transforms.route.replacement", "$1");
@@ -442,5 +496,17 @@ public class TaskExecutionService {
         config.put("key.converter.schemas.enable", "true");
         config.put("value.converter.schemas.enable", "true");
         return config;
+    }
+
+    private String resolveMetadataServiceUrl() {
+        String fromProps = connectProperties.getMetadataServiceUrl();
+        if (fromProps != null && !fromProps.isBlank()) {
+            return fromProps;
+        }
+        String env = System.getenv("DBSYNCER_METADATA_SERVICE_URL");
+        if (env != null && !env.isBlank()) {
+            return env;
+        }
+        return DEFAULT_METADATA_SERVICE_URL;
     }
 }

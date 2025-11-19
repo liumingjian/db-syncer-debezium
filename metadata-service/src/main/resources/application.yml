@@ -63,7 +63,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,loggers
   endpoint:
     health:
       show-details: when_authorized
@@ -78,13 +78,10 @@ logging:
     org.springframework: INFO
     org.hibernate: INFO
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus,loggers
-
 connect:
   rest-url: ${CONNECT_REST_URL:http://localhost:8083}
   wait-timeout-ms: ${CONNECT_WAIT_TIMEOUT_MS:60000}
   poll-interval-ms: ${CONNECT_POLL_INTERVAL_MS:2000}
+  metadata-service-url: ${METADATA_SERVICE_URL:http://metadata-service:8080}
+  schema-history-dir: ${CONNECT_SCHEMA_HISTORY_DIR:/kafka/connect/custom-connectors/schema-history}
+  enable-progress-smt: ${CONNECT_ENABLE_PROGRESS_SMT:false}

@@ -46,7 +46,7 @@ public class TaskController {
      * Get a task by ID.
      */
     @GetMapping("/{taskId}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable UUID taskId) {
+    public ResponseEntity<TaskResponse> getTask(@PathVariable("taskId") UUID taskId) {
         log.debug("REST request to get task: {}", taskId);
         TaskResponse response = taskService.getTask(taskId);
         return ResponseEntity.ok(response);
@@ -56,7 +56,7 @@ public class TaskController {
      * Get a task by name.
      */
     @GetMapping("/name/{taskName}")
-    public ResponseEntity<TaskResponse> getTaskByName(@PathVariable String taskName) {
+    public ResponseEntity<TaskResponse> getTaskByName(@PathVariable("taskName") String taskName) {
         log.debug("REST request to get task by name: {}", taskName);
         TaskResponse response = taskService.getTaskByName(taskName);
         return ResponseEntity.ok(response);
@@ -77,7 +77,7 @@ public class TaskController {
      * Get tasks by status.
      */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<TaskResponse>> getTasksByStatus(@PathVariable TaskStatus status) {
+    public ResponseEntity<List<TaskResponse>> getTasksByStatus(@PathVariable("status") TaskStatus status) {
         log.debug("REST request to get tasks by status: {}", status);
         List<TaskResponse> tasks = taskService.getTasksByStatus(status);
         return ResponseEntity.ok(tasks);
@@ -98,7 +98,7 @@ public class TaskController {
      */
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(
-            @PathVariable UUID taskId,
+            @PathVariable("taskId") UUID taskId,
             @Valid @RequestBody TaskUpdateRequest request) {
         log.info("REST request to update task: {}", taskId);
         TaskResponse response = taskService.updateTask(taskId, request);
@@ -109,7 +109,7 @@ public class TaskController {
      * Delete a task.
      */
     @DeleteMapping("/{taskId}")
-    public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId) {
+    public ResponseEntity<Void> deleteTask(@PathVariable("taskId") UUID taskId) {
         log.info("REST request to delete task: {}", taskId);
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
@@ -119,7 +119,7 @@ public class TaskController {
      * Start a task.
      */
     @PostMapping("/{taskId}/start")
-    public ResponseEntity<TaskResponse> startTask(@PathVariable UUID taskId) {
+    public ResponseEntity<TaskResponse> startTask(@PathVariable("taskId") UUID taskId) {
         log.info("REST request to start task: {}", taskId);
         TaskResponse response = executionService.startTask(taskId);
         return ResponseEntity.ok(response);
@@ -129,7 +129,7 @@ public class TaskController {
      * Stop a task.
      */
     @PostMapping("/{taskId}/stop")
-    public ResponseEntity<TaskResponse> stopTask(@PathVariable UUID taskId) {
+    public ResponseEntity<TaskResponse> stopTask(@PathVariable("taskId") UUID taskId) {
         log.info("REST request to stop task: {}", taskId);
         TaskResponse response = executionService.stopTask(taskId);
         return ResponseEntity.ok(response);
@@ -139,7 +139,7 @@ public class TaskController {
      * Pause a task.
      */
     @PostMapping("/{taskId}/pause")
-    public ResponseEntity<TaskResponse> pauseTask(@PathVariable UUID taskId) {
+    public ResponseEntity<TaskResponse> pauseTask(@PathVariable("taskId") UUID taskId) {
         log.info("REST request to pause task: {}", taskId);
         TaskResponse response = executionService.pauseTask(taskId);
         return ResponseEntity.ok(response);
@@ -149,7 +149,7 @@ public class TaskController {
      * Resume a task.
      */
     @PostMapping("/{taskId}/resume")
-    public ResponseEntity<TaskResponse> resumeTask(@PathVariable UUID taskId) {
+    public ResponseEntity<TaskResponse> resumeTask(@PathVariable("taskId") UUID taskId) {
         log.info("REST request to resume task: {}", taskId);
         TaskResponse response = executionService.resumeTask(taskId);
         return ResponseEntity.ok(response);

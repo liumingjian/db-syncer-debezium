@@ -46,7 +46,7 @@
 | Phase 2 | 元数据管理系统 | 8 | ✅ 全部完成 |
 | Phase 3 | CLI 命令行工具 | 7 | ✅ 全部完成 |
 | Phase 4 | Debezium Connector 集成 | 8 | ✅ 全部完成 |
-| Phase 5 | 数据转换层 | 6 | 全部待办 |
+| Phase 5 | 数据转换层 | 6 | 4 完成, 2 待办 |
 | Phase 6 | 任务执行引擎 | 9 | 4 完成, 5 待办 |
 | Phase 7 | 监控与可观测性 | 6 | 全部待办 |
 | Phase 8 | 测试与文档 | 8 | 全部待办 |
@@ -154,13 +154,17 @@ db-syncer-debezium/
 
 **完成时间**: 2025-11-17
 
-### Phase 5: 数据转换层 (2周) - 未开始
+### Phase 5: 数据转换层 (2周) - 部分完成
 
-**关键任务**:
-- Issue #18-20: 类型映射、SMT、Schema 转换
+**已完成（代码已落地）**:
+- ✅ Issue #30: 类型映射框架设计（TypeMapper/TypeMappingRegistry/规则格式）
+- ✅ Issue #31: MySQL → PostgreSQL 类型映射（含单元测试）
+- ✅ Issue #32: Oracle → PostgreSQL 类型映射（含单元测试）
+- ✅ Issue #34: Schema 转换逻辑（Debezium Schema 解析、DDL 生成、差异检测）
 
-**预计开始时间**: 2026-01-06
-**预计完成时间**: 2026-01-19
+**进行中/待办**:
+- ⏳ Issue #33: 自定义 SMT 组合（TypeConversion/ColumnRename/ValueTransform 全量实现）
+- ⏳ Issue #35: 数据转换端到端集成测试（正确性/边界值/性能）
 
 ### Phase 6: 任务执行引擎 (2周) - 进行中
 
@@ -177,13 +181,20 @@ db-syncer-debezium/
 - ⏳ Issue #43: 多表并行迁移（分组、并行度、资源与汇总）
 - ⏳ Issue #44: 任务执行集成测试（端到端/一致性/恢复/性能）
 
-### Phase 7: 监控与可观测性 (1周) - 未开始
+### Phase 7: 监控与可观测性 (1周) - 部分完成
 
-**关键任务**:
-- Issue #29-33: JMX、Prometheus、健康检查、告警
+**已完成（基础能力）**:
+- ✅ Issue #46: Prometheus 集成（Micrometer 依赖、自定义指标、/actuator/prometheus 暴露）
+- ✅ Issue #47: 健康检查接口（/health、/ready、DB 与 Kafka Connect 健康检查）
+- ✅ Issue #48: CLI 任务监控 Dashboard（实时进度条、多表进度、速率、ETA）
+- ✅ Issue #49: 日志增强（结构化 JSON 日志、任务关联日志、日志查询 API）
+- ✅ Issue #50: 告警机制骨架（AlertRule/AlertEvent 实体、任务失败触发告警事件）
 
-**预计开始时间**: 2026-02-03
-**预计完成时间**: 2026-02-09
+**进行中/待办**:
+- ⏳ Issue #45: JMX 指标暴露（按 Connector/任务维度的 MBean）
+- ⏳ Issue #46: Grafana Dashboard 模板与运维落地
+- ⏳ Issue #49: 日志级别动态调整与日志聚合平台配置
+- ⏳ Issue #50: 外部邮件/Webhook 发送实现与配置界面
 
 ### Phase 8: 测试与文档 (3周) - 未开始
 
